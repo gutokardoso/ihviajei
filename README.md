@@ -1,4 +1,4 @@
-# Ih, viajei! v4
+# Ih, viajei! v5
 **Sua viagem na palma da mão.**
 
 Esta é a primeira versão com backend e banco de dados reais. Não há contas demo, cotações inventadas ou ofertas fictícias.
@@ -30,6 +30,11 @@ O banco é criado automaticamente em `data/ihviajei.db` (ou no caminho definido 
 ## Testes
 Execute `npm test`. O teste cria um banco temporário e valida cadastro, sessão, isolamento por autenticação, viagem, compra/VET e alerta.
 
+## Correção v5 — Railway + SQLite
+A v5 corrige a inicialização do SQLite em volume persistente no Railway. O container não força mais o usuário `node`, evitando incompatibilidade de UID/GID com volumes recém-montados. Antes de abrir o SQLite, o servidor agora cria o diretório quando necessário, verifica leitura/escrita e realiza uma gravação de teste. Se o volume não estiver acessível, o log informa `DB_PATH`, diretório, UID e o erro real.
+
+Configuração recomendada no Railway: `DB_PATH=/app/data/ihviajei.db` e Volume Mount Path `/app/data`.
+
 ## Produção
 **GitHub Pages não executa esta versão**, pois agora existe backend. O GitHub continua adequado para versionar o código, mas a aplicação deve ser implantada em um host que execute Node.js/Docker e mantenha armazenamento persistente para o banco.
 
@@ -40,4 +45,4 @@ Em produção, use HTTPS obrigatório e faça backup periódico do volume/banco.
 ## O que depende de fornecedores externos
 Venda de moeda, ofertas/VET de instituições, pagamentos, WhatsApp/e-mail/push e execução automática dos alertas exigem contratos, credenciais e APIs dos respectivos fornecedores. Esses itens não são simulados nesta versão.
 
-Versão: **ihviajei-v4**
+Versão: **ihviajei-v5**

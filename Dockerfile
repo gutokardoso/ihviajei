@@ -3,8 +3,10 @@ WORKDIR /app
 COPY package.json ./
 COPY server.js ./
 COPY public ./public
-RUN mkdir -p /app/data && chown -R node:node /app
-USER node
+# O volume do Railway é montado em runtime. O processo permanece como root
+# para conseguir inicializar/gravar SQLite em volumes novos independentemente
+# do UID/GID atribuído pelo provedor.
+RUN mkdir -p /app/data
 ENV PORT=3000 DB_PATH=/app/data/ihviajei.db
 EXPOSE 3000
 CMD ["node", "server.js"]

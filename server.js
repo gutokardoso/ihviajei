@@ -17,7 +17,20 @@ loadEnv();
 const PORT=Number(process.env.PORT||3000), HOST=process.env.HOST||'0.0.0.0';
 const DB_PATH=path.resolve(__dirname, process.env.DB_PATH||'./data/ihviajei.db');
 const SESSION_DAYS=Math.max(1, Number(process.env.SESSION_DAYS||30));
-fs.mkdirSync(path.dirname(DB_PATH),{recursive:true});
+function prepareDatabasePath(){
+  const dir=path.dirname(DB_PATH);
+  try{
+    fs.mkdirSync(dir,{recursive:true});
+    fs.accessSync(dir,fs.constants.R_OK|fs.constants.W_OK);
+    const probe=path.join(dir,`.ihviajei-write-test-${process.pid}`);
+    fs.writeFileSync(probe,'ok',{flag:'wx'});
+    fs.unlinkSync(probe);
+  }catch(err){
+    console.error(`[startup] Banco inacessível. DB_PATH=${DB_PATH}; diretório=${dir}; uid=${typeof process.getuid==='function'?process.getuid():'n/a'}; erro=${err.message}`);
+    throw err;
+  }
+}
+prepareDatabasePath();
 const db=new DatabaseSync(DB_PATH); db.exec('PRAGMA foreign_keys=ON; PRAGMA journal_mode=WAL;');
 db.exec(`
 CREATE TABLE IF NOT EXISTS users(id INTEGER PRIMARY KEY, name TEXT NOT NULL, email TEXT NOT NULL UNIQUE, password_hash TEXT NOT NULL, role TEXT NOT NULL DEFAULT 'user', created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
@@ -47,7 +60,7 @@ async function api(req,res,url){
   if(!originOK(req)) return json(res,403,{error:'Origem não autorizada'});
   const p=url.pathname;
   try{
-    if(p==='/api/health') return json(res,200,{ok:true,version:'v4'});
+    if(p==='/api/health') return json(res,200,{ok:true,version:'v5'});
     if(p==='/api/auth/register'&&req.method==='POST'){const b=await body(req), name=clean(b.name,80), email=normalizeEmail(b.email), pass=String(b.password||''); if(name.length<2||!validEmail(email)||pass.length<10)return json(res,400,{error:'Informe nome, e-mail válido e senha com pelo menos 10 caracteres.'}); try{const r=db.prepare('INSERT INTO users(name,email,password_hash) VALUES(?,?,?)').run(name,email,hashPassword(pass)); const t=createSession(Number(r.lastInsertRowid)); return json(res,201,{ok:true},{'set-cookie':secureCookie(req,t)});}catch(e){if(String(e).includes('UNIQUE'))return json(res,409,{error:'Este e-mail já está cadastrado.'});throw e;}}
     if(p==='/api/auth/login'&&req.method==='POST'){const b=await body(req), email=normalizeEmail(b.email), pass=String(b.password||''); const u=db.prepare('SELECT * FROM users WHERE email=?').get(email); if(!u||!verifyPassword(pass,u.password_hash))return json(res,401,{error:'E-mail ou senha inválidos.'}); const t=createSession(u.id); return json(res,200,{ok:true},{'set-cookie':secureCookie(req,t)});}
     if(p==='/api/auth/logout'&&req.method==='POST'){const t=cookies(req).session;if(t)db.prepare('DELETE FROM sessions WHERE token_hash=?').run(crypto.createHash('sha256').update(t).digest('hex'));return json(res,200,{ok:true},{'set-cookie':'session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0'});}
@@ -69,5 +82,5 @@ async function api(req,res,url){
 const mime={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.ico':'image/x-icon'};
 function staticFile(req,res,url){let rel=url.pathname==='/'?'index.html':url.pathname.slice(1);rel=path.normalize(rel).replace(/^(\.\.[/\\])+/, '');const base=path.join(__dirname,'public'),f=path.join(base,rel);if(!f.startsWith(base)||!fs.existsSync(f)||fs.statSync(f).isDirectory()){res.writeHead(404);return res.end('Not found');}res.writeHead(200,{'content-type':mime[path.extname(f)]||'application/octet-stream','x-content-type-options':'nosniff','referrer-policy':'strict-origin-when-cross-origin','content-security-policy':"default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' https://api.frankfurter.app; img-src 'self' data:; base-uri 'none'; frame-ancestors 'none'"});fs.createReadStream(f).pipe(res);}
 const server=http.createServer((req,res)=>{const url=new URL(req.url,`http://${req.headers.host||'localhost'}`);if(url.pathname.startsWith('/api/'))api(req,res,url);else staticFile(req,res,url);});
-if(require.main===module)server.listen(PORT,HOST,()=>console.log(`Ih, viajei! v4 em http://${HOST}:${PORT}`));
+if(require.main===module)server.listen(PORT,HOST,()=>console.log(`Ih, viajei! v5 em http://${HOST}:${PORT}`));
 module.exports={server,db,hashPassword,verifyPassword};
