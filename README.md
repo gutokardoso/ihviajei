@@ -1,25 +1,29 @@
-# Ih, viajei! v1
+# Ih, viajei! — v2
 
-**Slogan:** Sua viagem na palma da mão.
+**Sua viagem na palma da mão.**
 
-Primeiro MVP navegável da plataforma de planejamento financeiro de viagem e comparação de câmbio.
+## O que há nesta versão
+- Home pública.
+- Criar conta e entrar (simulados localmente para validação do protótipo).
+- Área individual do viajante.
+- Múltiplas viagens por usuário.
+- Metas cambiais por viagem.
+- Carteira com registro de compras e cálculo de preço médio.
+- Dashboard individual.
+- Radar de euro/dólar demonstrativo.
+- Comparador por VET demonstrativo.
+- Alertas personalizados.
+- Perfil e preferências.
+- Layout responsivo.
 
-## Como executar
-Abra `index.html` em um navegador moderno. Não requer instalação, servidor ou dependências externas.
+## Teste rápido
+Abra `index.html` ou publique os arquivos na raiz do GitHub Pages.
 
-## Incluído nesta v1
-- Dashboard responsivo
-- Planejamento e persistência local da viagem
-- Meta cambial e progresso
-- Orçamento estimado por perfil
-- Radar demonstrativo de Euro/Dólar
-- Estratégia de compra parcelada
-- Simulador “E se eu esperar?”
-- Comparador demonstrativo por VET
-- Alertas interativos
-- Layout mobile
+Conta demonstrativa: `demo@ihviajei.com` / `demo123`.
 
-## Importante
-As cotações, scores, ofertas e estimativas desta v1 são dados demonstrativos. Nenhuma operação cambial real é executada. Integrações com fontes de cotação e instituições autorizadas deverão ser implementadas em versões posteriores.
+> **Não use senha real.** A autenticação da v2 é um protótipo em `localStorage`, não uma autenticação segura de produção.
 
-Versão: ihviajei-v1
+## Próxima etapa obrigatória para produção
+GitHub Pages pode continuar servindo o front-end, mas contas reais exigem autenticação e banco no servidor. A migração recomendada deve incluir: tabela de usuários/perfis, viagens, compras, alertas e parceiros; autenticação com e-mail verificado; recuperação de senha; políticas de acesso por usuário (row-level security ou equivalente); validação server-side; rate limiting; logs/auditoria; backups; consentimentos e rotinas LGPD.
+
+A v2 deliberadamente **não** simula segurança de produção nem executa operações de câmbio. Cotações, Radar e ofertas exibidas são demonstrativos até integração com fontes e instituições autorizadas.
