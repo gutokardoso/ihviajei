@@ -1,0 +1,11 @@
+services:
+  ihviajei:
+    build: .
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    volumes:
+      - ihviajei_data:/app/data
+volumes:
+  ihviajei_data:

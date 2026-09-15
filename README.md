@@ -1,29 +1,43 @@
-# Ih, viajei! — v2
-
+# Ih, viajei! v4
 **Sua viagem na palma da mão.**
 
-## O que há nesta versão
-- Home pública.
-- Criar conta e entrar (simulados localmente para validação do protótipo).
-- Área individual do viajante.
-- Múltiplas viagens por usuário.
-- Metas cambiais por viagem.
-- Carteira com registro de compras e cálculo de preço médio.
-- Dashboard individual.
-- Radar de euro/dólar demonstrativo.
-- Comparador por VET demonstrativo.
-- Alertas personalizados.
-- Perfil e preferências.
-- Layout responsivo.
+Esta é a primeira versão com backend e banco de dados reais. Não há contas demo, cotações inventadas ou ofertas fictícias.
 
-## Teste rápido
-Abra `index.html` ou publique os arquivos na raiz do GitHub Pages.
+## O que já é real
+- Cadastro e login multiusuário com sessão persistida no servidor.
+- Senhas protegidas com `scrypt` + salt individual; a senha em texto puro nunca é gravada.
+- Banco SQLite com usuários, sessões, viagens, compras e alertas.
+- Cada consulta de dados é vinculada ao usuário autenticado.
+- Múltiplas viagens e metas por moeda.
+- Carteira e registro de compras; o VET é calculado pelo backend (`total em R$ / moeda comprada`).
+- Alertas de limite salvos no banco (o disparo automático ainda exige um serviço agendado/canal de notificação).
+- Painel administrativo real, habilitado somente para usuário com `role=admin`.
+- Cotação de referência EUR/USD/GBP/CHF → BRL obtida em tempo real pela API Frankfurter (dados de referência do BCE). Se a fonte estiver indisponível, o sistema informa indisponibilidade e não inventa valor.
+- Comparador comercial não exibe parceiros falsos: ele só deverá listar ofertas quando APIs/contratos reais forem integrados.
 
-Conta demonstrativa: `demo@ihviajei.com` / `demo123`.
+## Requisitos
+Node.js 22.5 ou superior. O projeto não depende de pacotes npm de terceiros.
 
-> **Não use senha real.** A autenticação da v2 é um protótipo em `localStorage`, não uma autenticação segura de produção.
+## Rodar localmente
+1. Copie `.env.example` para `.env`.
+2. Ajuste `APP_ORIGIN=http://localhost:3000`.
+3. Opcionalmente configure `ADMIN_EMAIL`, `ADMIN_PASSWORD` (mínimo 10 caracteres) e `ADMIN_NAME` antes do primeiro boot.
+4. Execute `npm start`.
+5. Abra `http://localhost:3000`.
 
-## Próxima etapa obrigatória para produção
-GitHub Pages pode continuar servindo o front-end, mas contas reais exigem autenticação e banco no servidor. A migração recomendada deve incluir: tabela de usuários/perfis, viagens, compras, alertas e parceiros; autenticação com e-mail verificado; recuperação de senha; políticas de acesso por usuário (row-level security ou equivalente); validação server-side; rate limiting; logs/auditoria; backups; consentimentos e rotinas LGPD.
+O banco é criado automaticamente em `data/ihviajei.db` (ou no caminho definido em `DB_PATH`).
 
-A v2 deliberadamente **não** simula segurança de produção nem executa operações de câmbio. Cotações, Radar e ofertas exibidas são demonstrativos até integração com fontes e instituições autorizadas.
+## Testes
+Execute `npm test`. O teste cria um banco temporário e valida cadastro, sessão, isolamento por autenticação, viagem, compra/VET e alerta.
+
+## Produção
+**GitHub Pages não executa esta versão**, pois agora existe backend. O GitHub continua adequado para versionar o código, mas a aplicação deve ser implantada em um host que execute Node.js/Docker e mantenha armazenamento persistente para o banco.
+
+Para Docker: copie `.env.example` para `.env`, ajuste `APP_ORIGIN` para o domínio HTTPS público, defina o administrador e rode `docker compose up -d --build`. O volume `ihviajei_data` preserva o banco.
+
+Em produção, use HTTPS obrigatório e faça backup periódico do volume/banco. Para escala horizontal/múltiplas instâncias, migre a camada de dados de SQLite para PostgreSQL antes de distribuir a aplicação entre vários servidores.
+
+## O que depende de fornecedores externos
+Venda de moeda, ofertas/VET de instituições, pagamentos, WhatsApp/e-mail/push e execução automática dos alertas exigem contratos, credenciais e APIs dos respectivos fornecedores. Esses itens não são simulados nesta versão.
+
+Versão: **ihviajei-v4**
