@@ -1,4 +1,4 @@
-# Ih, viajei! v17
+# Ih, viajei! v18
 
 **Sua viagem na palma da mão.**
 
@@ -19,13 +19,19 @@ Versão de consolidação construída sobre o v16 anexado, preservando as decis�
 - Explorar usa Google Places no navegador com a chave protegida por referenciador HTTP, evitando o uso incorreto da chave de navegador em chamadas REST do servidor;
 - nenhuma resposta fictícia no Assistente: enquanto a API real de IA não estiver configurada/validada, a interface informa isso claramente.
 
-## Correções v17
+## Correções v18
 - removida a opção “Sem viagem” do registro de compra de moeda;
 - registro de compra fica associado a uma viagem;
 - `APP_ORIGIN` continua suportado e o próprio host atual também é aceito, evitando quebra de POST ao migrar para o domínio próprio; `APP_ORIGINS` pode receber origens adicionais separadas por vírgula;
-- versão interna, healthcheck e pacote sincronizados em v17.
+- versão interna, healthcheck e pacote sincronizados em v18.
 
 ## Railway
 Variáveis existentes continuam válidas: `SESSION_SECRET`, `DB_PATH`, `APP_ORIGIN`, `ADMIN_EMAIL`, `ADMIN_PASSWORD` e `GOOGLE_MAPS_API_KEY`.
 
 O banco SQLite persistente em `/app/data` não é incluído no ZIP e não deve ser substituído no deploy.
+
+- abas Mapa, Explorar, Documentos, Despesas e Viajantes com carregamento assíncrono aguardado e erro visível/repetível;
+- Explorar filtra resultados pelo país selecionado e aplica região do Google quando disponível;
+- removido Câmbio e Radar duplicado da barra autenticada;
+- removido rótulo Administração geral acima do título do painel;
+- Distribuição por plano corrigida para não ultrapassar o card.
