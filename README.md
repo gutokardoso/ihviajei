@@ -1,4 +1,4 @@
-# Ih, viajei! v15
+# Ih, viajei! v16
 
 Correções de estabilidade e segurança de conteúdo:
 - modais fecham no X e ao clicar no backdrop;
@@ -12,3 +12,7 @@ Variável para Explorar lugares:
 `GOOGLE_MAPS_API_KEY`
 
 A API Places (New) deve estar habilitada no projeto Google Cloud associado à chave.
+
+
+## v16 — Google Maps real
+A aba Mapa usa a Google Maps JavaScript API com a chave fornecida por `GOOGLE_MAPS_API_KEY`, carregada em runtime e protegida pelos referenciadores HTTP configurados no Google Cloud. Os locais do roteiro são resolvidos com Places API (New) e exibidos como marcadores reais.

@@ -16,5 +16,8 @@
 /* v14 */
 .tripTabs{scrollbar-width:thin}.privateBarInner{justify-content:flex-end}.privateBarInner nav{margin-left:auto}
 
-/* v15: barras autenticadas fixas e empilhadas abaixo do header */
+/* v16: Google Maps real + barras autenticadas fixas */
 .privateBar{position:sticky;top:78px;z-index:9}.page{scroll-margin-top:140px}@media(max-width:760px){.privateBar{top:68px}}
+
+/* v16: Google Maps JavaScript API */
+.tripMap{background:#eef1f4;overflow:hidden}.mapLoading{height:100%;display:grid;place-items:center;color:var(--muted);font-weight:800}
