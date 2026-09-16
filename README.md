@@ -1,4 +1,4 @@
-# Ih, viajei! v19
+# Ih, viajei! v20
 
 **Sua viagem na palma da mão.**
 
@@ -23,7 +23,7 @@ Versão de consolidação construída sobre o v16 anexado, preservando as decis�
 - removida a opção “Sem viagem” do registro de compra de moeda;
 - registro de compra fica associado a uma viagem;
 - `APP_ORIGIN` continua suportado e o próprio host atual também é aceito, evitando quebra de POST ao migrar para o domínio próprio; `APP_ORIGINS` pode receber origens adicionais separadas por vírgula;
-- versão interna, healthcheck e pacote sincronizados em v19.
+- versão interna, healthcheck e pacote sincronizados em v20.
 
 ## Railway
 Variáveis existentes continuam válidas: `SESSION_SECRET`, `DB_PATH`, `APP_ORIGIN`, `ADMIN_EMAIL`, `ADMIN_PASSWORD` e `GOOGLE_MAPS_API_KEY`.
@@ -36,7 +36,7 @@ O banco SQLite persistente em `/app/data` não é incluído no ZIP e não deve s
 - removido rótulo Administração geral acima do título do painel;
 - Distribuição por plano corrigida para não ultrapassar o card.
 
-## Integração v19 — Google Routes
+## Integração v20 — Google Routes
 - cálculo real de rotas pelo backend com a Routes API;
 - chave separada `GOOGLE_ROUTES_API_KEY`, nunca enviada ao navegador;
 - modos carro, a pé, bicicleta e transporte público;
