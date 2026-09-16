@@ -83,8 +83,33 @@ async function api(req,res,url){
   if(!originOK(req)) return json(res,403,{error:'Origem não autorizada'});
   const p=url.pathname;
   try{
-    if(p==='/api/health') return json(res,200,{ok:true,version:'v18'});
+    if(p==='/api/health') return json(res,200,{ok:true,version:'v19'});
     if(p==='/api/maps-config'&&req.method==='GET'){const key=process.env.GOOGLE_MAPS_API_KEY;if(!key)return json(res,503,{error:'Google Maps ainda não foi configurado.'});return json(res,200,{apiKey:key});}
+    if(p==='/api/routes/compute'&&req.method==='POST'){
+      const u=requireUser(req,res);if(!u)return;
+      const b=await body(req),trip=Number(b.trip_id),mode=clean(b.mode,20).toUpperCase();
+      const allowedModes=['DRIVE','WALK','BICYCLE','TRANSIT'];
+      if(!allowedModes.includes(mode))return json(res,400,{error:'Modo de transporte inválido.'});
+      const t=db.prepare('SELECT * FROM trips WHERE id=? AND user_id=?').get(trip,u.id);
+      if(!t)return json(res,404,{error:'Viagem não encontrada.'});
+      const itinerary=db.prepare('SELECT * FROM itinerary_items WHERE trip_id=? AND user_id=? ORDER BY item_date,id').all(trip,u.id);
+      let points=itinerary.map(x=>({label:x.location||x.title,address:[x.location||x.title,x.title].filter(Boolean).join(', ')})).filter(x=>x.address);
+      if(points.length<2)return json(res,400,{error:'Adicione pelo menos dois locais ao Roteiro para calcular uma rota.'});
+      if(mode==='TRANSIT'&&points.length>2)points=[points[0],points.at(-1)];
+      points=points.slice(0,25);
+      const key=process.env.GOOGLE_ROUTES_API_KEY;
+      if(!key)return json(res,503,{error:'Google Routes ainda não foi configurado no servidor.'});
+      const waypoint=p=>({address:p.address});
+      const payload={origin:waypoint(points[0]),destination:waypoint(points.at(-1)),travelMode:mode,languageCode:'pt-BR',units:'METRIC'};
+      if(points.length>2)payload.intermediates=points.slice(1,-1).map(waypoint);
+      try{
+        const r=await fetch('https://routes.googleapis.com/directions/v2:computeRoutes',{method:'POST',headers:{'content-type':'application/json','X-Goog-Api-Key':key,'X-Goog-FieldMask':'routes.distanceMeters,routes.duration,routes.polyline.encodedPolyline'},body:JSON.stringify(payload),signal:AbortSignal.timeout(12000)});
+        if(!r.ok){const detail=await r.text();console.error('Google Routes',r.status,detail);return json(res,502,{error:'O Google Routes não conseguiu calcular esta rota. Verifique se os locais do roteiro estão completos.'});}
+        const d=await r.json(),route=d.routes?.[0];
+        if(!route)return json(res,404,{error:'O Google Routes não encontrou uma rota entre esses locais.'});
+        return json(res,200,{source:'Google Routes',mode,distance_meters:Number(route.distanceMeters||0),duration_seconds:Math.round(Number(String(route.duration||'0s').replace('s',''))||0),polyline:route.polyline?.encodedPolyline||'',points:points.map(x=>x.label)});
+      }catch(e){console.error('Google Routes',e);return json(res,503,{error:'Não foi possível consultar o Google Routes agora.'});}
+    }
     if(p==='/api/auth/register'&&req.method==='POST'){const b=await body(req), name=clean(b.name,80), email=normalizeEmail(b.email), pass=String(b.password||''); if(name.length<2||!validEmail(email)||pass.length<10)return json(res,400,{error:'Informe nome, e-mail válido e senha com pelo menos 10 caracteres.'}); try{const r=db.prepare('INSERT INTO users(name,email,password_hash) VALUES(?,?,?)').run(name,email,hashPassword(pass)); const t=createSession(Number(r.lastInsertRowid)); return json(res,201,{ok:true},{'set-cookie':secureCookie(req,t)});}catch(e){if(String(e).includes('UNIQUE'))return json(res,409,{error:'Este e-mail já está cadastrado.'});throw e;}}
     if(p==='/api/auth/login'&&req.method==='POST'){const b=await body(req), email=normalizeEmail(b.email), pass=String(b.password||''); const u=db.prepare('SELECT * FROM users WHERE email=?').get(email); if(!u||!verifyPassword(pass,u.password_hash))return json(res,401,{error:'E-mail ou senha inválidos.'}); const t=createSession(u.id); return json(res,200,{ok:true},{'set-cookie':secureCookie(req,t)});}
     if(p==='/api/auth/logout'&&req.method==='POST'){const t=cookies(req).session;if(t)db.prepare('DELETE FROM sessions WHERE token_hash=?').run(crypto.createHash('sha256').update(t).digest('hex'));return json(res,200,{ok:true},{'set-cookie':'session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0'});}
@@ -155,5 +180,5 @@ async function api(req,res,url){
 const mime={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.ico':'image/x-icon'};
 function staticFile(req,res,url){let rel=url.pathname==='/'?'index.html':url.pathname.slice(1);rel=path.normalize(rel).replace(/^(\.\.[/\\])+/, '');const base=path.join(__dirname,'public'),f=path.join(base,rel);if(!f.startsWith(base)||!fs.existsSync(f)||fs.statSync(f).isDirectory()){res.writeHead(404);return res.end('Not found');}res.writeHead(200,{'content-type':mime[path.extname(f)]||'application/octet-stream','x-content-type-options':'nosniff','referrer-policy':'strict-origin-when-cross-origin','content-security-policy':"default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' https://maps.googleapis.com https://maps.gstatic.com; connect-src 'self' https://api.frankfurter.app https://maps.googleapis.com https://places.googleapis.com; img-src 'self' data: https: blob:; frame-src https://www.google.com; base-uri 'none'; frame-ancestors 'none'"});fs.createReadStream(f).pipe(res);}
 const server=http.createServer((req,res)=>{const url=new URL(req.url,`http://${req.headers.host||'localhost'}`);if(url.pathname.startsWith('/api/'))api(req,res,url);else staticFile(req,res,url);});
-if(require.main===module)server.listen(PORT,HOST,()=>console.log(`Ih, viajei! v18 em http://${HOST}:${PORT}`));
+if(require.main===module)server.listen(PORT,HOST,()=>console.log(`Ih, viajei! v19 em http://${HOST}:${PORT}`));
 module.exports={server,db,hashPassword,verifyPassword};
