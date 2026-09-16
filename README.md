@@ -1,4 +1,4 @@
-# Ih, viajei! v24
+# Ih, viajei! v25
 
 **Sua viagem na palma da mão.**
 
@@ -23,7 +23,7 @@ Versão de consolidação construída sobre o v16 anexado, preservando as decis�
 - removida a opção “Sem viagem” do registro de compra de moeda;
 - registro de compra fica associado a uma viagem;
 - `APP_ORIGIN` continua suportado e o próprio host atual também é aceito, evitando quebra de POST ao migrar para o domínio próprio; `APP_ORIGINS` pode receber origens adicionais separadas por vírgula;
-- versão interna, healthcheck e pacote sincronizados em v24.
+- versão interna, healthcheck e pacote sincronizados em v25.
 
 ## Railway
 Variáveis existentes continuam válidas: `SESSION_SECRET`, `DB_PATH`, `APP_ORIGIN`, `ADMIN_EMAIL`, `ADMIN_PASSWORD` e `GOOGLE_MAPS_API_KEY`.
@@ -43,7 +43,7 @@ O banco SQLite persistente em `/app/data` não é incluído no ZIP e não deve s
 - distância, duração e traçado real exibidos no mapa;
 - rota usa os locais do Roteiro na ordem cadastrada.
 
-## v24 — edição de conteúdos
+## v25 — edição de conteúdos
 - Orçamento, Roteiro, Reservas, Checklist, Documentos, Despesas e Viajantes exibem ações **Editar** e **Remover**.
 - A edição altera o registro existente, sem exigir exclusão e recriação.
 - Ao editar um item do Orçamento, a despesa vinculada em “Divisão de despesas” também é sincronizada; se a divisão for removida, a despesa automática vinculada é removida.
