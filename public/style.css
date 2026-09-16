@@ -38,3 +38,13 @@
 #dayStops .listItem b,#dayStops .listItem span{display:block;text-align:left}
 #dayStops .ambiguity>div{width:100%;text-align:left}
 .companionFields{padding:4px 0}.companionFields h4{margin:14px 0 4px}.splitPicker{border:1px solid #d6dce5;border-radius:10px;padding:8px 12px;margin:6px 0 14px}.splitPicker label{display:flex;align-items:center;gap:8px;margin:6px 0;font-weight:500}.splitPicker input{width:auto;margin:0}.expenseItem>div:first-child{flex:1;text-align:left}
+
+/* v24 — ações de edição/remocão nos conteúdos criados */
+.itemActions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-left:auto}
+.itemActions button{width:auto;min-width:72px;padding:8px 12px;border-radius:9px;font-size:13px;font-weight:700;line-height:1.1;cursor:pointer}
+.editBtn{background:#fff;border:1px solid #e87500;color:#d96700}
+.editBtn:hover{background:#fff5ea}
+.removeBtn{background:#fff;border:1px solid #d7dce4;color:#5b6472}
+.removeBtn:hover{background:#f4f6f8;color:#b42318;border-color:#e2b7b3}
+.check .itemActions{margin-left:auto}
+@media(max-width:700px){.itemActions{width:100%;justify-content:flex-start;margin-left:0;margin-top:8px}.listItem>.itemActions{flex-basis:100%}.itemActions button{flex:0 0 auto}}
