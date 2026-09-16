@@ -62,3 +62,18 @@
 .budgetItem .itemAmount{width:130px;text-align:left;white-space:nowrap;justify-self:start}
 .budgetItem .itemActions{margin-left:0;justify-self:end}
 @media(max-width:700px){.budgetItem{grid-template-columns:minmax(0,1fr) 110px 86px;column-gap:10px}.budgetItem .itemAmount{width:110px;font-size:14px}.budgetItem .itemActions{margin-left:0}}
+
+/* v27 — navegação compacta da viagem */
+.tripTabs{overflow:visible;white-space:normal;align-items:stretch;gap:6px;position:relative;scrollbar-width:none}
+.tripTabs>button,.tripGroupBtn{padding:12px 14px;white-space:nowrap;min-width:0;border-radius:10px 10px 0 0}
+.tripTabs>button.active,.tripGroupBtn.active{color:var(--orange);border-bottom:3px solid var(--orange);font-weight:800}
+.tripTabGroup{position:relative;display:flex}
+.tripGroupBtn{display:flex;align-items:center;gap:7px}
+.tripGroupBtn span{font-size:14px;transition:transform .18s ease}
+.tripTabGroup.open .tripGroupBtn span{transform:rotate(180deg)}
+.tripDropdown{display:none;position:absolute;left:0;top:calc(100% - 1px);min-width:190px;padding:7px;background:#fff;border:1px solid var(--line);border-radius:0 12px 12px 12px;box-shadow:0 16px 38px rgba(25,35,50,.14);z-index:20}
+.tripTabGroup.open .tripDropdown{display:grid}
+.tripDropdown button{width:100%;padding:10px 12px;text-align:left;border-radius:8px;white-space:nowrap}
+.tripDropdown button:hover,.tripDropdown button.active{background:#fff6ed;color:var(--orange);font-weight:800}
+@media(hover:hover){.tripTabGroup:hover .tripDropdown{display:grid}}
+@media(max-width:760px){.tripTabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border-bottom:0;gap:8px}.tripTabs>button,.tripGroupBtn{width:100%;justify-content:space-between;border:1px solid var(--line);border-radius:10px;padding:10px 12px}.tripTabs>button.active,.tripGroupBtn.active{border:1px solid var(--orange);background:#fff6ed}.tripTabGroup{width:100%}.tripDropdown{top:calc(100% + 4px);width:100%;min-width:0;border-radius:10px}.tripTabs>button[data-tab="overview"],.tripTabs>button[data-tab="assistant"]{text-align:left}}
