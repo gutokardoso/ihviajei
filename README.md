@@ -1,18 +1,31 @@
-# Ih, viajei! v16
+# Ih, viajei! v17
 
-Correções de estabilidade e segurança de conteúdo:
-- modais fecham no X e ao clicar no backdrop;
-- barra autenticada/admin fica sticky junto ao header;
-- Área do viajante redundante removida do dashboard;
-- Explorar lugares deixou de usar busca genérica da Wikipedia e agora usa Google Places API (New);
-- sem GOOGLE_MAPS_API_KEY, a aplicação informa que a integração precisa ser configurada e não exibe resultados genéricos;
-- nova viagem sempre abre com destinos limpos e exige seleção explícita.
+**Sua viagem na palma da mão.**
 
-Variável para Explorar lugares:
-`GOOGLE_MAPS_API_KEY`
+Versão de consolidação construída sobre o v16 anexado, preservando as decisões já aprovadas e corrigindo regressões identificadas na auditoria.
 
-A API Places (New) deve estar habilitada no projeto Google Cloud associado à chave.
+## Mantido e consolidado
+- navegação autenticada em faixa separada abaixo do header;
+- logo volta para a home, sem botão redundante “Início”;
+- login com “Entrar” e “Criar conta”;
+- viagem individual com Visão geral, Orçamento, Roteiro, Reservas, Checklist, Mapa, Explorar, Documentos, Despesas, Viajantes e Assistente;
+- Orçamento com País/Local, Categoria, Cidade, Descrição e Valor;
+- Roteiro com País/Estado, Local, datas exibidas em DD/MM/AAAA e observações em marcadores;
+- aba atual preservada depois de salvar itens;
+- Booking do Câmbio com dados reais e links de instituições quando identificadas;
+- administrador geral não cria viagens;
+- Google Maps real usando `GOOGLE_MAPS_API_KEY`;
+- mapa usa pontos do roteiro e locais salvos;
+- Explorar usa Google Places no navegador com a chave protegida por referenciador HTTP, evitando o uso incorreto da chave de navegador em chamadas REST do servidor;
+- nenhuma resposta fictícia no Assistente: enquanto a API real de IA não estiver configurada/validada, a interface informa isso claramente.
 
+## Correções v17
+- removida a opção “Sem viagem” do registro de compra de moeda;
+- registro de compra fica associado a uma viagem;
+- `APP_ORIGIN` continua suportado e o próprio host atual também é aceito, evitando quebra de POST ao migrar para o domínio próprio; `APP_ORIGINS` pode receber origens adicionais separadas por vírgula;
+- versão interna, healthcheck e pacote sincronizados em v17.
 
-## v16 — Google Maps real
-A aba Mapa usa a Google Maps JavaScript API com a chave fornecida por `GOOGLE_MAPS_API_KEY`, carregada em runtime e protegida pelos referenciadores HTTP configurados no Google Cloud. Os locais do roteiro são resolvidos com Places API (New) e exibidos como marcadores reais.
+## Railway
+Variáveis existentes continuam válidas: `SESSION_SECRET`, `DB_PATH`, `APP_ORIGIN`, `ADMIN_EMAIL`, `ADMIN_PASSWORD` e `GOOGLE_MAPS_API_KEY`.
+
+O banco SQLite persistente em `/app/data` não é incluído no ZIP e não deve ser substituído no deploy.
