@@ -85,7 +85,7 @@ async function api(req,res,url){
   if(!originOK(req)) return json(res,403,{error:'Origem não autorizada'});
   const p=url.pathname;
   try{
-    if(p==='/api/health') return json(res,200,{ok:true,version:'v25'});
+    if(p==='/api/health') return json(res,200,{ok:true,version:'v26'});
     if(p==='/api/maps-config'&&req.method==='GET'){const key=process.env.GOOGLE_MAPS_API_KEY;if(!key)return json(res,503,{error:'Google Maps ainda não foi configurado.'});return json(res,200,{apiKey:key});}
     if(p==='/api/routes/compute'&&req.method==='POST'){
       const u=requireUser(req,res);if(!u)return;
@@ -187,5 +187,5 @@ async function api(req,res,url){
 const mime={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.ico':'image/x-icon'};
 function staticFile(req,res,url){let rel=url.pathname==='/'?'index.html':url.pathname.slice(1);rel=path.normalize(rel).replace(/^(\.\.[/\\])+/, '');const base=path.join(__dirname,'public'),f=path.join(base,rel);if(!f.startsWith(base)||!fs.existsSync(f)||fs.statSync(f).isDirectory()){res.writeHead(404);return res.end('Not found');}res.writeHead(200,{'content-type':mime[path.extname(f)]||'application/octet-stream','x-content-type-options':'nosniff','referrer-policy':'strict-origin-when-cross-origin','content-security-policy':"default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' https://maps.googleapis.com https://maps.gstatic.com; connect-src 'self' https://api.frankfurter.app https://maps.googleapis.com https://places.googleapis.com; img-src 'self' data: https: blob:; frame-src https://www.google.com; base-uri 'none'; frame-ancestors 'none'"});fs.createReadStream(f).pipe(res);}
 const server=http.createServer((req,res)=>{const url=new URL(req.url,`http://${req.headers.host||'localhost'}`);if(url.pathname.startsWith('/api/'))api(req,res,url);else staticFile(req,res,url);});
-if(require.main===module)server.listen(PORT,HOST,()=>console.log(`Ih, viajei! v25 em http://${HOST}:${PORT}`));
+if(require.main===module)server.listen(PORT,HOST,()=>console.log(`Ih, viajei! v26 em http://${HOST}:${PORT}`));
 module.exports={server,db,hashPassword,verifyPassword};

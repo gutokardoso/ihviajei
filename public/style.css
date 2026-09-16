@@ -55,3 +55,10 @@
 .editModalActions{display:flex;justify-content:flex-end;gap:10px;margin-top:22px}
 .editModalActions .removeBtn{width:auto;min-width:96px;height:auto;padding:12px 18px}
 @media(max-width:700px){.itemActions{width:86px;flex-basis:86px;justify-content:center;margin-left:auto;margin-top:0}.listItem>.itemActions{flex-basis:86px}.itemActions button{width:86px;min-width:86px}.editModalActions{flex-direction:column-reverse}.editModalActions button{width:100%!important}}
+
+/* v26: colunas consistentes nos itens de orçamento */
+.budgetItem{display:grid;grid-template-columns:minmax(0,1fr) 130px 86px;align-items:center;column-gap:18px}
+.budgetItem .itemContent{min-width:0;text-align:left}
+.budgetItem .itemAmount{width:130px;text-align:left;white-space:nowrap;justify-self:start}
+.budgetItem .itemActions{margin-left:0;justify-self:end}
+@media(max-width:700px){.budgetItem{grid-template-columns:minmax(0,1fr) 110px 86px;column-gap:10px}.budgetItem .itemAmount{width:110px;font-size:14px}.budgetItem .itemActions{margin-left:0}}
