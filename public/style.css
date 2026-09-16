@@ -15,3 +15,6 @@
 
 /* v14 */
 .tripTabs{scrollbar-width:thin}.privateBarInner{justify-content:flex-end}.privateBarInner nav{margin-left:auto}
+
+/* v15: barras autenticadas fixas e empilhadas abaixo do header */
+.privateBar{position:sticky;top:78px;z-index:9}.page{scroll-margin-top:140px}@media(max-width:760px){.privateBar{top:68px}}

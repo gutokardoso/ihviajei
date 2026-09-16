@@ -1,12 +1,14 @@
-# Ih, viajei! v14
+# Ih, viajei! v15
 
-Versão ampliada do planejador de viagens. Mantém os recursos anteriores e acrescenta mapa da viagem, exploração de lugares com dados públicos, documentos/vouchers por link, divisão de despesas, viajantes/colaboração organizada e assistente contextual baseado nos dados da viagem.
+Correções de estabilidade e segurança de conteúdo:
+- modais fecham no X e ao clicar no backdrop;
+- barra autenticada/admin fica sticky junto ao header;
+- Área do viajante redundante removida do dashboard;
+- Explorar lugares deixou de usar busca genérica da Wikipedia e agora usa Google Places API (New);
+- sem GOOGLE_MAPS_API_KEY, a aplicação informa que a integração precisa ser configurada e não exibe resultados genéricos;
+- nova viagem sempre abre com destinos limpos e exige seleção explícita.
 
-## Importante
-Recursos que exigem credenciais de terceiros não usam dados fictícios. Status de voo em tempo real, envio automático de convites/e-mails, IA generativa externa e importação automática de e-mails exigem provedores/credenciais e não são simulados. A v14 oferece as respectivas áreas funcionais com dados próprios/públicos sem fingir integrações inexistentes.
+Variável para Explorar lugares:
+`GOOGLE_MAPS_API_KEY`
 
-## Deploy
-Mantém `DB_PATH=/app/data/ihviajei.db` e o volume em `/app/data`. As tabelas novas são criadas com `CREATE TABLE IF NOT EXISTS`, preservando o banco existente.
-
-## Testes
-`npm test`
+A API Places (New) deve estar habilitada no projeto Google Cloud associado à chave.
