@@ -1,9 +1,9 @@
-# Ih, viajei! v10
+# Ih, viajei! v11
 **Sua viagem na palma da mão.**
 
 Aplicação Node.js com autenticação real, SQLite persistente e planejamento de viagens por usuário.
 
-## v10 — revisão funcional
+## v11 — revisão funcional
 - Corrige o acesso de **Abrir planejamento** e demais ações dos cartões sob a política de segurança do navegador.
 - Mantém o menu público no header e a **Área do viajante** em uma faixa separada.
 - Página individual de viagem com **Visão geral, Orçamento, Roteiro, Reservas e Checklist**.
@@ -20,7 +20,7 @@ O banco é criado em `data/ihviajei.db` ou no caminho de `DB_PATH`. No Railway, 
 - `DB_PATH=/app/data/ihviajei.db`
 - Volume Mount Path `/app/data`
 
-A v10 usa `CREATE TABLE IF NOT EXISTS`, portanto as novas estruturas não apagam usuários, viagens ou compras já existentes.
+A v11 usa `CREATE TABLE IF NOT EXISTS`, portanto as novas estruturas não apagam usuários, viagens ou compras já existentes.
 
 ## Rodar localmente
 1. Copie `.env.example` para `.env`.
@@ -37,4 +37,11 @@ GitHub Pages não executa o backend. Use o GitHub para versionamento e o Railway
 
 Venda efetiva de moeda, pagamentos e disparos automáticos de WhatsApp/e-mail/push continuam dependendo de fornecedores/credenciais. A plataforma não simula ofertas comerciais atuais.
 
-Versão: **ihviajei-v10**
+Versão: **ihviajei-v11**
+
+
+## Planos e checkout
+A home exibe Gratuito (R$ 0), Intermediário (R$ 29,90/mês) e PRO (R$ 59,90/mês). Para cobrança real, configure `PLAN_INTERMEDIARIO_URL` e `PLAN_PRO_URL` com URLs HTTPS do provedor de checkout. A aplicação não simula pagamento quando essas URLs não existem.
+
+## Administração geral
+A conta `role=admin` é exclusivamente administrativa: não cria viagens. O painel mostra métricas globais, crescimento, distribuição de planos e usuários cadastrados.

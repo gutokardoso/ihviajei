@@ -1,8 +1,13 @@
 {
   "name": "ihviajei",
-  "version": "10.0.0",
+  "version": "11.0.0",
   "private": true,
   "description": "Ih, viajei! — Sua viagem na palma da mão.",
-  "scripts": {"start": "node server.js", "test": "node tests.js"},
-  "engines": {"node": ">=22.5.0"}
+  "scripts": {
+    "start": "node server.js",
+    "test": "node tests.js"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  }
 }
