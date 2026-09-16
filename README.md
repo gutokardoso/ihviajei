@@ -1,4 +1,4 @@
-# Ih, viajei! v27
+# Ih, viajei! v28
 
 **Sua viagem na palma da mão.**
 
@@ -50,3 +50,10 @@ O banco SQLite persistente em `/app/data` não é incluído no ZIP e não deve s
 - Ao editar um acompanhante em Viajantes, o nome também é atualizado na lista oficial de acompanhantes da viagem e passa a ser usado nos seletores futuros.
 - Endpoints de atualização são protegidos por usuário, como os endpoints de criação e remoção.
 - Testes automatizados cobrem atualização de orçamento, roteiro, reserva, checklist e trip-tools.
+
+## v28 — identidade visual
+- paleta atualizada para azul-marinho `#0B2D4F`, azul-petróleo `#00A4B4`, coral `#FF6B5B`, creme `#FFF9F2` e cinza `#E5E7EB`;
+- tipografia da interface preparada para Poppins com fallbacks nativos compatíveis;
+- botões principais em azul-petróleo, CTAs de destaque em coral e cantos arredondados;
+- cartões, formulários, modais, navegação, estados ativos e mapa harmonizados com a nova identidade;
+- identidade aplicada sem alterar fluxos, dados ou integrações existentes.

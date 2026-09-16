@@ -77,3 +77,39 @@
 .tripDropdown button:hover,.tripDropdown button.active{background:#fff6ed;color:var(--orange);font-weight:800}
 @media(hover:hover){.tripTabGroup:hover .tripDropdown{display:grid}}
 @media(max-width:760px){.tripTabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border-bottom:0;gap:8px}.tripTabs>button,.tripGroupBtn{width:100%;justify-content:space-between;border:1px solid var(--line);border-radius:10px;padding:10px 12px}.tripTabs>button.active,.tripGroupBtn.active{border:1px solid var(--orange);background:#fff6ed}.tripTabGroup{width:100%}.tripDropdown{top:calc(100% + 4px);width:100%;min-width:0;border-radius:10px}.tripTabs>button[data-tab="overview"],.tripTabs>button[data-tab="assistant"]{text-align:left}}
+
+/* v28 — identidade visual oficial Ih, viajei! */
+:root{
+  --navy:#0B2D4F;--teal:#00A4B4;--coral:#FF6B5B;--cream:#FFF9F2;--gray:#E5E7EB;
+  --orange:var(--teal);--orange2:#20BEC8;--ink:var(--navy);--muted:#667383;--line:#E5E7EB;--soft:#F7F9FA;--green:#168467;
+}
+body{font-family:Poppins,"Avenir Next",Avenir,Montserrat,ui-sans-serif,system-ui,-apple-system,sans-serif;color:var(--navy);background:#fff}
+header{background:rgba(255,255,255,.97);border-bottom:1px solid var(--gray);box-shadow:0 4px 18px rgba(11,45,79,.035)}
+.brand{color:var(--navy);font-weight:900;letter-spacing:-.045em}.brand::first-letter{color:var(--teal)}.brand small{color:#667383;letter-spacing:0;font-weight:600}
+nav button:hover,.link,.linkBtn,.back{color:var(--teal)}
+.primary,.quoteBtn{background:linear-gradient(135deg,var(--teal),#18BBC3);border-radius:999px;box-shadow:0 8px 20px rgba(0,164,180,.16)}
+.primary:hover,.quoteBtn:hover{background:linear-gradient(135deg,#008E9D,var(--teal));transform:translateY(-1px)}
+.danger{color:#D94F45;border-color:#FFD2CD}.refreshBtn{background:#F1FBFC;color:var(--teal);border-color:#B9E9ED}.refreshBtn:hover{background:var(--teal)}
+.pill,.eyebrow,.steps span,.travelStories span{color:var(--teal)}
+.heroCard,.card,.tripCard,.featureGrid article,.plan,.listItem,.check{border-color:var(--gray);box-shadow:0 10px 30px rgba(11,45,79,.055)}
+.heroVisual,.tripHero{background:linear-gradient(135deg,var(--cream),#fff);border-color:#F1E8DF}
+.progress i{background:linear-gradient(90deg,var(--teal),var(--coral))}
+input,select,textarea,.countryPicker summary{border-color:#D8DEE5;border-radius:12px;color:var(--navy)}
+input:focus,select:focus,textarea:focus{outline:2px solid rgba(0,164,180,.15);border-color:var(--teal)}
+.tripTabs>button.active,.tripGroupBtn.active{color:var(--teal);border-bottom-color:var(--coral)}
+.tripDropdown button:hover,.tripDropdown button.active{background:#F0FBFC;color:var(--teal)}
+.routeNumber{background:var(--coral)}
+.editBtn{border-color:var(--teal);color:var(--teal);background:#fff}.editBtn:hover{background:#F0FBFC}.removeBtn{border-color:#DCE1E6;color:#687386}
+.authTabs button.active,.currencySwitch button.active{color:var(--teal)}
+.privateBar{background:#FAFBFC}.privateBar nav button:hover{color:var(--teal)}
+.empty,.vetGrid>div{background:#F5F7F9}
+/* cartões e modais mais leves, conforme o guia */
+dialog{border-radius:24px;box-shadow:0 30px 90px rgba(11,45,79,.24)}.modal{background:#fff}.close{color:var(--navy)}
+/* coral reservado para ações de criação/ênfase secundária */
+.actions .primary:nth-child(2),.cta .primary{background:linear-gradient(135deg,var(--coral),#FF806D);box-shadow:0 8px 20px rgba(255,107,91,.18)}
+/* pequenos acentos editoriais da identidade */
+.sectionIntro h2,.tripHero h1,.hero h1,.welcome h1{letter-spacing:-.035em;color:var(--navy)}
+.sectionIntro h2:after{content:"";display:block;width:44px;height:4px;border-radius:9px;background:var(--coral);margin-top:14px}
+/* mapa: marcadores e destaques coerentes */
+.ambiguity{border-color:#FFC2B9}.routeResult{border-color:#DCE5E9;background:#FBFDFD}
+@media(max-width:760px){.tripTabs>button.active,.tripGroupBtn.active{border-color:var(--teal);background:#F0FBFC}.primary{min-height:44px}}
