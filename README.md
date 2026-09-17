@@ -1,4 +1,4 @@
-# Ih, viajei! v30
+# Ih, viajei! v31
 
 **Sua viagem na palma da mão.**
 
@@ -59,7 +59,7 @@ O banco SQLite persistente em `/app/data` não é incluído no ZIP e não deve s
 - identidade aplicada sem alterar fluxos, dados ou integrações existentes.
 
 
-## v30 — documentos privados no Supabase Storage
+## v31 — documentos privados no Supabase Storage
 - integração alinhada às novas Secret API Keys do Supabase (`SUPABASE_SECRET_KEY`);
 - bucket privado `trip-documents`, sem URL pública permanente;
 - upload de PDF/JPG/PNG até 8 MB pelo backend;
