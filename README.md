@@ -1,4 +1,4 @@
-# Ih, viajei! v45
+# Ih, viajei! v46
 
 **Sua viagem na palma da mão.**
 
@@ -122,3 +122,8 @@ O banco SQLite persistente em `/app/data` não é incluído no ZIP e não deve s
 - Mapa integrado com hospedagem e restaurantes numerados.
 - Resposta textual curta, sem Markdown/links duplicados quando houver resultados estruturados do Google Places.
 - Fotos e dados continuam vindo do Google Places real.
+
+
+## Correção v46
+- Evita cache de arquivos estáticos após deploy para garantir que o navegador carregue o JavaScript da mesma versão do backend.
+- Corrige o caso em que o backend v45 retornava `ui` com restaurantes, mas o navegador ainda executava o `app.js` anterior e mostrava apenas a introdução textual.
