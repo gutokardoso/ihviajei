@@ -1,4 +1,4 @@
-# Ih, viajei! v41
+# Ih, viajei! v42
 
 **Sua viagem na palma da mão.**
 
@@ -101,3 +101,10 @@ O banco SQLite persistente em `/app/data` não é incluído no ZIP e não deve s
 - O contexto inclui dados da viagem do usuário: roteiro, orçamento, reservas, checklist, compras de moeda e dados complementares.
 - A `OPENAI_API_KEY` permanece somente no servidor.
 - Conversa curta mantida no navegador e enviada com limite ao backend.
+
+
+## v42 — Assistente conectado às integrações da viagem
+- O Assistente resolve automaticamente hotéis e outros lugares pelo Google Places usando os dados já cadastrados na viagem.
+- Perguntas sobre restaurantes próximos usam a localização real do hotel e resultados reais do Google Places.
+- Perguntas de rota podem usar o Google Routes com os pontos cadastrados no roteiro.
+- O usuário não precisa informar manualmente um endereço quando a plataforma consegue resolvê-lo pelas integrações configuradas.
