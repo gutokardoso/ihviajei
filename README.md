@@ -1,4 +1,4 @@
-# Ih, viajei! v46
+# Ih, viajei! v47
 
 **Sua viagem na palma da mão.**
 
@@ -127,3 +127,8 @@ O banco SQLite persistente em `/app/data` não é incluído no ZIP e não deve s
 ## Correção v46
 - Evita cache de arquivos estáticos após deploy para garantir que o navegador carregue o JavaScript da mesma versão do backend.
 - Corrige o caso em que o backend v45 retornava `ui` com restaurantes, mas o navegador ainda executava o `app.js` anterior e mostrava apenas a introdução textual.
+
+## v47 — correção real de atualização do frontend
+- Corrigido o cache-busting que a v46 dizia aplicar, mas não estava presente no HTML entregue.
+- `style.css` e `app.js` agora são requisitados com `?v=47`, forçando Cloudflare/navegador a buscar o frontend novo após o deploy.
+- Mantidos os cards visuais de restaurantes, fotos do Places, faixa de preço, distância e mapa da v45/v46.
