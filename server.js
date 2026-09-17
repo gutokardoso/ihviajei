@@ -88,7 +88,7 @@ async function api(req,res,url){
   const p=url.pathname;
   try{
     let m;
-    if(p==='/api/health') return json(res,200,{ok:true,version:'v33'});
+    if(p==='/api/health') return json(res,200,{ok:true,version:'v34'});
     if(p==='/api/documents/upload'&&req.method==='POST'){
       const u=requireUser(req,res);if(!u)return;const b=await body(req),trip=Number(b.trip_id);
       if(!db.prepare('SELECT id FROM trips WHERE id=? AND user_id=?').get(trip,u.id))return json(res,403,{error:'Viagem inválida.'});
@@ -154,7 +154,7 @@ async function api(req,res,url){
     m=p.match(/^\/api\/checklist\/(\d+)$/); if(m&&req.method==='PATCH'){const u=requireUser(req,res);if(!u)return;const b=await body(req);db.prepare('UPDATE checklist_items SET done=? WHERE id=? AND user_id=?').run(b.done?1:0,Number(m[1]),u.id);return json(res,200,{ok:true});}
     if(p==='/api/vet/reference'&&req.method==='GET'){
       const currency=(url.searchParams.get('currency')||'EUR').toUpperCase();
-      if(!['EUR','USD'].includes(currency))return json(res,400,{error:'Moeda inválida.'});
+      if(!/^[A-Z]{3}$/.test(currency))return json(res,400,{error:'Moeda inválida.'});
       const now=new Date(); let ranking=null, reference='';
       for(let back=1;back<=8&&!ranking;back++){
         const d=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth()-back,1));
