@@ -1,4 +1,4 @@
-# Ih, viajei! v34
+# Ih, viajei! v35
 
 **Sua viagem na palma da mão.**
 
@@ -76,5 +76,5 @@ O banco SQLite persistente em `/app/data` não é incluído no ZIP e não deve s
 - Cards do Radar na home são links para Câmbio e recebem contorno azul-petróleo no hover.
 
 
-## v34 — visualização integral de documentos
+## v35 — visualização integral de documentos
 - Imagens no modal agora são redimensionadas proporcionalmente para caber integralmente na área visível, sem corte e sem barra de rolagem.

@@ -88,7 +88,7 @@ async function api(req,res,url){
   const p=url.pathname;
   try{
     let m;
-    if(p==='/api/health') return json(res,200,{ok:true,version:'v34'});
+    if(p==='/api/health') return json(res,200,{ok:true,version:'v35'});
     if(p==='/api/documents/upload'&&req.method==='POST'){
       const u=requireUser(req,res);if(!u)return;const b=await body(req),trip=Number(b.trip_id);
       if(!db.prepare('SELECT id FROM trips WHERE id=? AND user_id=?').get(trip,u.id))return json(res,403,{error:'Viagem inválida.'});
@@ -168,7 +168,7 @@ async function api(req,res,url){
     }
     if(p==='/api/rates/history'&&req.method==='GET'){
       const currency=(url.searchParams.get('currency')||'EUR').toUpperCase(),days=Math.min(180,Math.max(7,Number(url.searchParams.get('days')||30)));
-      if(!['EUR','USD'].includes(currency))return json(res,400,{error:'Moeda inválida.'});
+      if(!/^[A-Z]{3}$/.test(currency)||currency==='BRL')return json(res,400,{error:'Moeda inválida.'});
       const end=new Date(),start=new Date(Date.now()-days*86400000); let points=[],source='';
       const iso=d=>d.toISOString().slice(0,10), us=d=>String(d.getUTCMonth()+1).padStart(2,'0')+'-'+String(d.getUTCDate()).padStart(2,'0')+'-'+d.getUTCFullYear();
       try{
@@ -177,8 +177,9 @@ async function api(req,res,url){
         const byDate=new Map(); for(const x of d.value||[]){const date=String(x.dataHoraCotacao||'').slice(0,10);const brl=Number(x.cotacaoVenda);if(date&&Number.isFinite(brl))byDate.set(date,brl)}
         points=[...byDate].map(([date,brl])=>({date,brl})).sort((a,b)=>a.date.localeCompare(b.date)); source='Banco Central do Brasil (PTAX)';
       }catch{}
+      if(!points.length){try{const r=await fetch(`https://economia.awesomeapi.com.br/json/daily/${currency}-BRL/${Math.min(days,360)}`,{signal:AbortSignal.timeout(8000)});if(!r.ok)throw new Error('awesome');const d=await r.json();if(Array.isArray(d))points=d.map(x=>({date:new Date(Number(x.timestamp)*1000).toISOString().slice(0,10),brl:Number(x.bid||x.ask)})).filter(x=>x.date&&Number.isFinite(x.brl)&&x.brl>0).sort((a,b)=>a.date.localeCompare(b.date));if(points.length)source='AwesomeAPI / mercado de câmbio';}catch{}}
       if(!points.length){try{const r=await fetch(`https://api.frankfurter.app/${iso(start)}..${iso(end)}?from=${currency}&to=BRL`,{signal:AbortSignal.timeout(8000)});if(!r.ok)throw new Error('fallback');const d=await r.json();points=Object.entries(d.rates||{}).map(([date,x])=>({date,brl:Number(x.BRL)})).filter(x=>Number.isFinite(x.brl));source='Frankfurter / referência do BCE';}catch{}}
-      if(!points.length)return json(res,503,{error:'Não foi possível obter cotações reais neste momento.'});
+      if(!points.length)return json(res,503,{error:`Não foi possível obter histórico real de ${currency} nas fontes disponíveis neste momento.`});
       const vals=points.map(x=>x.brl),cur=vals.at(-1),avg=vals.reduce((a,b)=>a+b,0)/vals.length,min=Math.min(...vals),max=Math.max(...vals),position=max===min?50:100*(max-cur)/(max-min),trend=cur-vals[Math.max(0,vals.length-6)],score=Math.max(5,Math.min(95,Math.round(position*.7+(trend<0?20:trend>0?5:12))));
       return json(res,200,{currency,points,summary:{current:cur,average:avg,min,max,score,label:score>=75?'Boa oportunidade':score>=55?'Interessante':score>=40?'Neutro':'Preço elevado no histórico recente'},source});
     }
