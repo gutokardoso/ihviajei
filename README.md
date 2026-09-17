@@ -1,4 +1,4 @@
-# Ih, viajei! v44
+# Ih, viajei! v45
 
 **Sua viagem na palma da mão.**
 
@@ -115,3 +115,10 @@ O banco SQLite persistente em `/app/data` não é incluído no ZIP e não deve s
 - requisição `places:searchNearby` alinhada ao Places API (New), com `includedTypes`, círculo de 1,8 km, FieldMask e limite válido.
 - respostas de Text Search e Nearby Search passam por um normalizador único e tolerante a campos opcionais ausentes.
 - testes automatizados cobrem o corpo/cabeçalhos do Nearby Search e o processamento de respostas reais no formato Places API (New).
+
+
+## v45 — Assistente visual
+- Recomendações de restaurantes em cartões com foto, culinária, avaliação, faixa de preço, endereço e distância.
+- Mapa integrado com hospedagem e restaurantes numerados.
+- Resposta textual curta, sem Markdown/links duplicados quando houver resultados estruturados do Google Places.
+- Fotos e dados continuam vindo do Google Places real.
