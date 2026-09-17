@@ -1,4 +1,4 @@
-# Ih, viajei! v42
+# Ih, viajei! v43
 
 **Sua viagem na palma da mão.**
 
@@ -103,7 +103,7 @@ O banco SQLite persistente em `/app/data` não é incluído no ZIP e não deve s
 - Conversa curta mantida no navegador e enviada com limite ao backend.
 
 
-## v42 — Assistente conectado às integrações da viagem
+## v43 — Assistente conectado às integrações da viagem
 - O Assistente resolve automaticamente hotéis e outros lugares pelo Google Places usando os dados já cadastrados na viagem.
 - Perguntas sobre restaurantes próximos usam a localização real do hotel e resultados reais do Google Places.
 - Perguntas de rota podem usar o Google Routes com os pontos cadastrados no roteiro.

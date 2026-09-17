@@ -87,23 +87,23 @@ function institutionAction(name){
 }
 
 async function googlePlaceSearch(textQuery,maxResultCount=5){
-  const key=process.env.GOOGLE_MAPS_API_KEY;if(!key)return [];
+  const key=process.env.GOOGLE_PLACES_API_KEY||process.env.GOOGLE_MAPS_API_KEY;if(!key)return [];
   try{
     const r=await fetch('https://places.googleapis.com/v1/places:searchText',{method:'POST',headers:{'content-type':'application/json','X-Goog-Api-Key':key,'X-Goog-FieldMask':'places.id,places.displayName,places.formattedAddress,places.location,places.rating,places.userRatingCount,places.googleMapsUri,places.priceLevel,places.primaryTypeDisplayName'},body:JSON.stringify({textQuery,languageCode:'pt-BR',maxResultCount:Math.max(1,Math.min(10,maxResultCount))}),signal:AbortSignal.timeout(9000)});
-    if(!r.ok){console.error('[assistant places search]',r.status);return []}const d=await r.json();return (d.places||[]).map(x=>({id:x.id,name:x.displayName?.text||'',address:x.formattedAddress||'',location:x.location||null,rating:Number(x.rating||0),reviews:Number(x.userRatingCount||0),category:x.primaryTypeDisplayName?.text||'',price_level:x.priceLevel||'',map_url:x.googleMapsUri||''}));
+    if(!r.ok){const detail=await r.text().catch(()=> '');console.error('[assistant places search]',r.status,detail.slice(0,500));return []}const d=await r.json();return (d.places||[]).map(x=>({id:x.id,name:x.displayName?.text||'',address:x.formattedAddress||'',location:x.location||null,rating:Number(x.rating||0),reviews:Number(x.userRatingCount||0),category:x.primaryTypeDisplayName?.text||'',price_level:x.priceLevel||'',map_url:x.googleMapsUri||''}));
   }catch(e){console.error('[assistant places search]',e.message);return []}
 }
 async function googleNearbyRestaurants(location,maxResultCount=6){
   const key=process.env.GOOGLE_MAPS_API_KEY;if(!key||!location?.latitude||!location?.longitude)return [];
   try{
     const r=await fetch('https://places.googleapis.com/v1/places:searchNearby',{method:'POST',headers:{'content-type':'application/json','X-Goog-Api-Key':key,'X-Goog-FieldMask':'places.id,places.displayName,places.formattedAddress,places.location,places.rating,places.userRatingCount,places.googleMapsUri,places.priceLevel,places.primaryTypeDisplayName'},body:JSON.stringify({includedTypes:['restaurant'],maxResultCount:Math.max(1,Math.min(10,maxResultCount)),rankPreference:'POPULARITY',languageCode:'pt-BR',locationRestriction:{circle:{center:location,radius:1800}}}),signal:AbortSignal.timeout(9000)});
-    if(!r.ok){console.error('[assistant places nearby]',r.status);return []}const d=await r.json();return (d.places||[]).map(x=>({id:x.id,name:x.displayName?.text||'',address:x.formattedAddress||'',location:x.location||null,rating:Number(x.rating||0),reviews:Number(x.userRatingCount||0),category:x.primaryTypeDisplayName?.text||'',price_level:x.priceLevel||'',map_url:x.googleMapsUri||''}));
+    if(!r.ok){const detail=await r.text().catch(()=> '');console.error('[assistant places nearby]',r.status,detail.slice(0,500));return []}const d=await r.json();return (d.places||[]).map(x=>({id:x.id,name:x.displayName?.text||'',address:x.formattedAddress||'',location:x.location||null,rating:Number(x.rating||0),reviews:Number(x.userRatingCount||0),category:x.primaryTypeDisplayName?.text||'',price_level:x.priceLevel||'',map_url:x.googleMapsUri||''}));
   }catch(e){console.error('[assistant places nearby]',e.message);return []}
 }
 async function assistantExternalContext(question,trip,context){
   const q=String(question||''),low=q.toLocaleLowerCase('pt-BR'),external={};
   const placeIntent=/(hotel|restaurante|comer|almoç|jantar|café|caf[eé]|perto|próxim|proxim|endereço|endereco|atraç|passeio|lugar|onde fica)/i.test(q);
-  if(placeIntent&&process.env.GOOGLE_MAPS_API_KEY){
+  if(placeIntent&&(process.env.GOOGLE_PLACES_API_KEY||process.env.GOOGLE_MAPS_API_KEY)){
     const lodging=(context.budget||[]).filter(x=>/hosped|hotel|hostel|pousada|airbnb|apart/i.test(`${x.category||''} ${x.description||''}`)).slice(0,8);
     const resolved=[];
     for(const x of lodging){
@@ -132,7 +132,7 @@ async function api(req,res,url){
   const p=url.pathname;
   try{
     let m;
-    if(p==='/api/health') return json(res,200,{ok:true,version:'v42'});
+    if(p==='/api/health') return json(res,200,{ok:true,version:'v43'});
     if(p==='/api/flights/status'&&req.method==='GET'){
       const u=requireUser(req,res);if(!u)return;
       const number=clean(url.searchParams.get('number'),12).replace(/[^A-Za-z0-9]/g,'').toUpperCase(),date=clean(url.searchParams.get('date'),10);
