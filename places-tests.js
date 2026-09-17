@@ -24,6 +24,6 @@ global.fetch=async (url,opt)=>{captured={url,opt,body:JSON.parse(opt.body)};retu
   assert.deepEqual(captured.body.locationRestriction.circle.center,{latitude:38.725,longitude:-9.135});
   assert.equal(rows.length,2); assert.equal(rows[0].name,'Restaurante Lisboa');
   const ui=assistantNearbyUI({nearby_restaurants:{reference_place:{name:'Hotel',address:'Lisboa',location:{latitude:38.725,longitude:-9.135}},results:rows}});
-  assert.equal(ui.type,'nearby_restaurants'); assert.equal(ui.restaurants.length,2); assert.equal(ui.restaurants[0].image,'/api/place-photo?name=places%2Fabc%2Fphotos%2Fphoto1'); assert.ok(Number.isFinite(ui.restaurants[0].distance_meters));
+  assert.equal(ui.type,'nearby_restaurants'); assert.equal(ui.places.length,2); assert.equal(ui.places[0].image,'/api/place-photo?name=places%2Fabc%2Fphotos%2Fphoto1'); assert.ok(Number.isFinite(ui.places[0].distance_meters));
   console.log('OK: Nearby Search e processamento da resposta Places API (New) validados.');
 } finally {global.fetch=realFetch; cleanupDb()}})().catch(e=>{global.fetch=realFetch;console.error(e);process.exit(1)});
