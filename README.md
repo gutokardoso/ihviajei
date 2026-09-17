@@ -1,4 +1,4 @@
-# Ih, viajei! v53
+# Ih, viajei! v55
 
 **Sua viagem na palma da mão.**
 
@@ -155,3 +155,17 @@ O banco SQLite persistente em `/app/data` não é incluído no ZIP e não deve s
 - `style.css` e `app.js` usam `?v=53` para evitar frontend antigo após deploy;
 - estrutura de produção preservada com os arquivos web dentro de `public/`, conforme o servidor Node espera;
 - pacote final sem banco SQLite, WAL/SHM, `node_modules`, `.env`, caches ou resíduos de teste.
+
+
+## v55
+
+- Corrigido caractere de controle invisível (backspace) que havia sido inserido acidentalmente em uma expressão regular de `server.js` e podia causar falha no processamento pelo upload web do GitHub.
+- Pacote auditado para caracteres de controle, resíduos SQLite, arquivos temporários e integridade do ZIP.
+- Funcionalidades da v54 preservadas.
+
+
+## v54
+- Corrige a rolagem do Assistente para não sobrepor o header.
+- Adiciona Guias de viagem ao menu público, busca e grade de até 12 guias.
+- Adiciona página detalhada de guia com capa, publicação, introdução, seções expansíveis e cards.
+- Adiciona cadastro persistente de guias pelo administrador.
