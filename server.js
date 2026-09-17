@@ -88,7 +88,7 @@ async function api(req,res,url){
   const p=url.pathname;
   try{
     let m;
-    if(p==='/api/health') return json(res,200,{ok:true,version:'v38'});
+    if(p==='/api/health') return json(res,200,{ok:true,version:'v39'});
     if(p==='/api/flights/status'&&req.method==='GET'){
       const u=requireUser(req,res);if(!u)return;
       const number=clean(url.searchParams.get('number'),12).replace(/[^A-Za-z0-9]/g,'').toUpperCase(),date=clean(url.searchParams.get('date'),10);

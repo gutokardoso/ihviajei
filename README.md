@@ -1,4 +1,4 @@
-# Ih, viajei! v38
+# Ih, viajei! v39
 
 **Sua viagem na palma da mão.**
 
@@ -80,12 +80,12 @@ O banco SQLite persistente em `/app/data` não é incluído no ZIP e não deve s
 - Imagens no modal agora são redimensionadas proporcionalmente para caber integralmente na área visível, sem corte e sem barra de rolagem.
 
 
-## v38
+## v39
 - Seletor de moedas pode ser reaberto com um clique, sem limpar a seleção.
 - USD (Estados Unidos) é carregado por padrão ao abrir Câmbio.
 
 
-## v38
+## v39
 - Integração real de status de voos com AeroDataBox via RapidAPI, usando `RAPIDAPI_KEY` somente no backend.
 - Consulta por número do voo e data dentro de Reservas, com origem, destino, horários, terminal, portão e status quando fornecidos pela fonte.
 - Tratamento de indisponibilidade, voo não encontrado e limite da API sem expor a chave ao navegador.
