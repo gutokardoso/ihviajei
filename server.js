@@ -86,18 +86,37 @@ function institutionAction(name){
   return found?found[1]:null;
 }
 
+function normalizeGooglePlaces(payload){
+  const places=Array.isArray(payload?.places)?payload.places:[];
+  return places.map(x=>({
+    id:String(x?.id||''),
+    name:String(x?.displayName?.text||x?.displayName||''),
+    address:String(x?.formattedAddress||x?.shortFormattedAddress||''),
+    location:(Number.isFinite(Number(x?.location?.latitude))&&Number.isFinite(Number(x?.location?.longitude)))?{latitude:Number(x.location.latitude),longitude:Number(x.location.longitude)}:null,
+    rating:Number.isFinite(Number(x?.rating))?Number(x.rating):0,
+    reviews:Number.isFinite(Number(x?.userRatingCount))?Number(x.userRatingCount):0,
+    category:String(x?.primaryTypeDisplayName?.text||x?.primaryTypeDisplayName||x?.primaryType||''),
+    price_level:String(x?.priceLevel||''),
+    map_url:String(x?.googleMapsUri||'')
+  })).filter(x=>x.name||x.address||x.id);
+}
 async function googlePlaceSearch(textQuery,maxResultCount=5){
   const key=process.env.GOOGLE_PLACES_API_KEY||process.env.GOOGLE_MAPS_API_KEY;if(!key)return [];
   try{
-    const r=await fetch('https://places.googleapis.com/v1/places:searchText',{method:'POST',headers:{'content-type':'application/json','X-Goog-Api-Key':key,'X-Goog-FieldMask':'places.id,places.displayName,places.formattedAddress,places.location,places.rating,places.userRatingCount,places.googleMapsUri,places.priceLevel,places.primaryTypeDisplayName'},body:JSON.stringify({textQuery,languageCode:'pt-BR',maxResultCount:Math.max(1,Math.min(10,maxResultCount))}),signal:AbortSignal.timeout(9000)});
-    if(!r.ok){const detail=await r.text().catch(()=> '');console.error('[assistant places search]',r.status,detail.slice(0,500));return []}const d=await r.json();return (d.places||[]).map(x=>({id:x.id,name:x.displayName?.text||'',address:x.formattedAddress||'',location:x.location||null,rating:Number(x.rating||0),reviews:Number(x.userRatingCount||0),category:x.primaryTypeDisplayName?.text||'',price_level:x.priceLevel||'',map_url:x.googleMapsUri||''}));
+    const r=await fetch('https://places.googleapis.com/v1/places:searchText',{method:'POST',headers:{'content-type':'application/json','X-Goog-Api-Key':key,'X-Goog-FieldMask':'places.id,places.displayName,places.formattedAddress,places.location,places.rating,places.userRatingCount,places.googleMapsUri,places.priceLevel,places.primaryType,places.primaryTypeDisplayName'},body:JSON.stringify({textQuery,languageCode:'pt-BR',maxResultCount:Math.max(1,Math.min(10,maxResultCount))}),signal:AbortSignal.timeout(9000)});
+    if(!r.ok){const detail=await r.text().catch(()=> '');console.error('[assistant places search]',r.status,detail.slice(0,500));return []}
+    return normalizeGooglePlaces(await r.json());
   }catch(e){console.error('[assistant places search]',e.message);return []}
 }
 async function googleNearbyRestaurants(location,maxResultCount=6){
-  const key=process.env.GOOGLE_MAPS_API_KEY;if(!key||!location?.latitude||!location?.longitude)return [];
+  const key=process.env.GOOGLE_PLACES_API_KEY||process.env.GOOGLE_MAPS_API_KEY;
+  const latitude=Number(location?.latitude),longitude=Number(location?.longitude);
+  if(!key||!Number.isFinite(latitude)||!Number.isFinite(longitude))return [];
   try{
-    const r=await fetch('https://places.googleapis.com/v1/places:searchNearby',{method:'POST',headers:{'content-type':'application/json','X-Goog-Api-Key':key,'X-Goog-FieldMask':'places.id,places.displayName,places.formattedAddress,places.location,places.rating,places.userRatingCount,places.googleMapsUri,places.priceLevel,places.primaryTypeDisplayName'},body:JSON.stringify({includedTypes:['restaurant'],maxResultCount:Math.max(1,Math.min(10,maxResultCount)),rankPreference:'POPULARITY',languageCode:'pt-BR',locationRestriction:{circle:{center:location,radius:1800}}}),signal:AbortSignal.timeout(9000)});
-    if(!r.ok){const detail=await r.text().catch(()=> '');console.error('[assistant places nearby]',r.status,detail.slice(0,500));return []}const d=await r.json();return (d.places||[]).map(x=>({id:x.id,name:x.displayName?.text||'',address:x.formattedAddress||'',location:x.location||null,rating:Number(x.rating||0),reviews:Number(x.userRatingCount||0),category:x.primaryTypeDisplayName?.text||'',price_level:x.priceLevel||'',map_url:x.googleMapsUri||''}));
+    const body={includedTypes:['restaurant'],maxResultCount:Math.max(1,Math.min(20,maxResultCount)),rankPreference:'POPULARITY',languageCode:'pt-BR',locationRestriction:{circle:{center:{latitude,longitude},radius:1800}}};
+    const r=await fetch('https://places.googleapis.com/v1/places:searchNearby',{method:'POST',headers:{'content-type':'application/json','X-Goog-Api-Key':key,'X-Goog-FieldMask':'places.id,places.displayName,places.formattedAddress,places.location,places.rating,places.userRatingCount,places.googleMapsUri,places.priceLevel,places.primaryType,places.primaryTypeDisplayName'},body:JSON.stringify(body),signal:AbortSignal.timeout(9000)});
+    if(!r.ok){const detail=await r.text().catch(()=> '');console.error('[assistant places nearby]',r.status,detail.slice(0,500));return []}
+    return normalizeGooglePlaces(await r.json());
   }catch(e){console.error('[assistant places nearby]',e.message);return []}
 }
 async function assistantExternalContext(question,trip,context){
@@ -132,7 +151,7 @@ async function api(req,res,url){
   const p=url.pathname;
   try{
     let m;
-    if(p==='/api/health') return json(res,200,{ok:true,version:'v43'});
+    if(p==='/api/health') return json(res,200,{ok:true,version:'v44'});
     if(p==='/api/flights/status'&&req.method==='GET'){
       const u=requireUser(req,res);if(!u)return;
       const number=clean(url.searchParams.get('number'),12).replace(/[^A-Za-z0-9]/g,'').toUpperCase(),date=clean(url.searchParams.get('date'),10);
@@ -294,5 +313,5 @@ async function api(req,res,url){
 const mime={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.ico':'image/x-icon'};
 function staticFile(req,res,url){let rel=url.pathname==='/'?'index.html':url.pathname.slice(1);rel=path.normalize(rel).replace(/^(\.\.[/\\])+/, '');const base=path.join(__dirname,'public'),f=path.join(base,rel);if(!f.startsWith(base)||!fs.existsSync(f)||fs.statSync(f).isDirectory()){res.writeHead(404);return res.end('Not found');}res.writeHead(200,{'content-type':mime[path.extname(f)]||'application/octet-stream','x-content-type-options':'nosniff','referrer-policy':'strict-origin-when-cross-origin','content-security-policy':"default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' https://maps.googleapis.com https://maps.gstatic.com; connect-src 'self' https://api.frankfurter.app https://maps.googleapis.com https://places.googleapis.com; img-src 'self' data: https: blob:; frame-src https://www.google.com; base-uri 'none'; frame-ancestors 'none'"});fs.createReadStream(f).pipe(res);}
 const server=http.createServer((req,res)=>{const url=new URL(req.url,`http://${req.headers.host||'localhost'}`);if(url.pathname.startsWith('/api/'))api(req,res,url);else staticFile(req,res,url);});
-if(require.main===module)server.listen(PORT,HOST,()=>console.log(`Ih, viajei! v28 em http://${HOST}:${PORT}`));
-module.exports={server,db,hashPassword,verifyPassword};
+if(require.main===module)server.listen(PORT,HOST,()=>console.log(`Ih, viajei! v44 em http://${HOST}:${PORT}`));
+module.exports={server,db,hashPassword,verifyPassword,normalizeGooglePlaces,googlePlaceSearch,googleNearbyRestaurants};

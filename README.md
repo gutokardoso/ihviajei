@@ -1,4 +1,4 @@
-# Ih, viajei! v43
+# Ih, viajei! v44
 
 **Sua viagem na palma da mão.**
 
@@ -108,3 +108,10 @@ O banco SQLite persistente em `/app/data` não é incluído no ZIP e não deve s
 - Perguntas sobre restaurantes próximos usam a localização real do hotel e resultados reais do Google Places.
 - Perguntas de rota podem usar o Google Routes com os pontos cadastrados no roteiro.
 - O usuário não precisa informar manualmente um endereço quando a plataforma consegue resolvê-lo pelas integrações configuradas.
+
+
+## v44 — Google Places / Nearby Search
+- Nearby Search do Assistente usa a chave de servidor `GOOGLE_PLACES_API_KEY`, com fallback para a chave Maps somente por compatibilidade.
+- requisição `places:searchNearby` alinhada ao Places API (New), com `includedTypes`, círculo de 1,8 km, FieldMask e limite válido.
+- respostas de Text Search e Nearby Search passam por um normalizador único e tolerante a campos opcionais ausentes.
+- testes automatizados cobrem o corpo/cabeçalhos do Nearby Search e o processamento de respostas reais no formato Places API (New).
