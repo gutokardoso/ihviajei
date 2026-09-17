@@ -1,4 +1,4 @@
-# Ih, viajei! v49
+# Ih, viajei! v53
 
 **Sua viagem na palma da mão.**
 
@@ -148,3 +148,10 @@ O banco SQLite persistente em `/app/data` não é incluído no ZIP e não deve s
 - comandos naturais como “Adicione o Museu do Prado ao meu roteiro” e “Salve o Restaurante X” executam a ação sem depender de texto livre da IA;
 - quando “esse/essa” for ambíguo entre vários cartões, o Assistente pede o nome ou número em vez de escolher arbitrariamente;
 - botões nos próprios cartões oferecem “Salvar lugar” e “Adicionar ao roteiro”.
+
+
+## v53 — sincronização de versão e auditoria do pacote
+- versão do README, `package.json`, healthcheck e mensagem de inicialização sincronizadas em v53;
+- `style.css` e `app.js` usam `?v=53` para evitar frontend antigo após deploy;
+- estrutura de produção preservada com os arquivos web dentro de `public/`, conforme o servidor Node espera;
+- pacote final sem banco SQLite, WAL/SHM, `node_modules`, `.env`, caches ou resíduos de teste.
