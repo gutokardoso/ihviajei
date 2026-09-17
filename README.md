@@ -132,3 +132,19 @@ O banco SQLite persistente em `/app/data` não é incluído no ZIP e não deve s
 - Corrigido o cache-busting que a v46 dizia aplicar, mas não estava presente no HTML entregue.
 - `style.css` e `app.js` agora são requisitados com `?v=47`, forçando Cloudflare/navegador a buscar o frontend novo após o deploy.
 - Mantidos os cards visuais de restaurantes, fotos do Places, faixa de preço, distância e mapa da v45/v46.
+
+
+## v51 — respostas visuais para qualquer descoberta de lugares
+- Pontos turísticos, atrações, museus, parques, lojas, farmácias, mercados e outras indicações passam pelo Google Places e são exibidos em cartões + mapa.
+- Perguntas como “Indique pontos turísticos em Madrid” não podem mais cair em lista textual da IA quando o Places retornar resultados.
+- `place_search` agora é convertido para a mesma UI visual usada em recomendações próximas à hospedagem.
+
+
+## v52 — histórico persistente e ações a partir das sugestões
+- histórico do Assistente persistido no SQLite por usuário e por viagem;
+- conversa reaparece após refresh, novo login ou outro dispositivo;
+- botão “Limpar conversa” remove apenas o histórico daquela viagem;
+- resultados visuais podem ser salvos em “Mapa e lugares” ou adicionados ao Roteiro;
+- comandos naturais como “Adicione o Museu do Prado ao meu roteiro” e “Salve o Restaurante X” executam a ação sem depender de texto livre da IA;
+- quando “esse/essa” for ambíguo entre vários cartões, o Assistente pede o nome ou número em vez de escolher arbitrariamente;
+- botões nos próprios cartões oferecem “Salvar lugar” e “Adicionar ao roteiro”.
