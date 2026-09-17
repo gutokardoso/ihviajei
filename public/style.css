@@ -178,3 +178,6 @@ body,body *,button,input,select,textarea,b,strong,h1,h2,h3,h4,h5,h6,label,.prima
 
 /* v40 — orçamento integrado a reservas */
 .budgetReservationCheck{display:flex!important;align-items:center;gap:10px;margin-top:4px;cursor:pointer}.budgetReservationCheck input{width:18px!important;height:18px!important;margin:0;flex:0 0 auto}.budgetReservationHint{display:block;margin-top:-8px;margin-bottom:12px}.budgetReservationBadge{display:inline-flex!important;width:max-content;margin-top:5px;padding:4px 9px;border:1px solid var(--teal);border-radius:999px;color:var(--teal)}
+
+/* v41 — Assistente IA */
+.assistantConversation{display:flex;flex-direction:column;gap:12px;min-height:180px;max-height:460px;overflow:auto;margin:18px 0;padding:16px;background:#fff9f2;border:1px solid var(--line);border-radius:16px}.assistantWelcome{color:var(--muted);padding:4px}.assistantMsg{max-width:88%;padding:12px 14px;border-radius:14px;line-height:1.55;overflow-wrap:anywhere}.assistantMsg.user{align-self:flex-end;background:var(--teal);color:white}.assistantMsg.ai{align-self:flex-start;background:white;border:1px solid var(--line);color:var(--navy)}.assistantMsg.error{border-color:#ffb3aa;color:#9b2c20}.assistantMsg.waiting{color:var(--muted)}.assistantActions{display:flex;justify-content:flex-end;margin-top:10px}.assistantBox textarea{width:100%;resize:vertical}
