@@ -150,3 +150,9 @@ body,body *,button,input,select,textarea,b,strong,h1,h2,h3,h4,h5,h6,label,.prima
 .homeRadarCard:hover,.homeRadarCard:focus-visible{border-color:var(--teal);box-shadow:0 12px 32px rgba(0,164,180,.10);transform:translateY(-2px);outline:none}
 .homeRadarCard h3{font-size:20px;margin:0 0 18px}.homeRadarRate{font-size:38px;line-height:1.1;margin:8px 0 16px}.homeRadarScore{color:#168c72;margin-bottom:10px}.homeRadarCard small{font-size:14px;line-height:1.5}
 @media(max-width:760px){.homeRadarGrid{grid-template-columns:1fr}.homeRadarSection{padding:48px 0}.homeRadarRate{font-size:32px}}
+/* v33 — visualizador: documento inteiro sempre dentro da viewport */
+.documentViewerDialog{box-sizing:border-box;max-height:92dvh!important;overflow:hidden!important}
+.documentViewerModal{box-sizing:border-box;height:100%!important;max-height:92dvh!important;overflow:hidden!important}
+.documentViewerBody{box-sizing:border-box;position:relative;flex:1 1 0!important;height:0!important;min-height:0!important;overflow:hidden!important;padding:12px!important}
+.documentViewerBody .documentPreviewImage{position:absolute!important;inset:12px!important;width:calc(100% - 24px)!important;height:calc(100% - 24px)!important;max-width:calc(100% - 24px)!important;max-height:calc(100% - 24px)!important;object-fit:contain!important;object-position:center center!important;margin:0!important}
+@media(max-width:760px){.documentViewerDialog{max-height:90dvh!important}.documentViewerModal{max-height:90dvh!important}.documentViewerBody .documentPreviewImage{inset:8px!important;width:calc(100% - 16px)!important;height:calc(100% - 16px)!important;max-width:calc(100% - 16px)!important;max-height:calc(100% - 16px)!important}}

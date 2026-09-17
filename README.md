@@ -1,4 +1,4 @@
-# Ih, viajei! v32
+# Ih, viajei! v33
 
 **Sua viagem na palma da mão.**
 
@@ -74,3 +74,7 @@ O banco SQLite persistente em `/app/data` não é incluído no ZIP e não deve s
 - Imagens de documentos ajustadas integralmente ao modal, sem barra de rolagem.
 - Radar EUR/BRL e USD/BRL adicionado abaixo do hero da página inicial, sem botões de atualização.
 - Cards do Radar na home são links para Câmbio e recebem contorno azul-petróleo no hover.
+
+
+## v33 — visualização integral de documentos
+- Imagens no modal agora são redimensionadas proporcionalmente para caber integralmente na área visível, sem corte e sem barra de rolagem.
