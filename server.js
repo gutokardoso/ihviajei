@@ -88,7 +88,7 @@ async function api(req,res,url){
   const p=url.pathname;
   try{
     let m;
-    if(p==='/api/health') return json(res,200,{ok:true,version:'v36'});
+    if(p==='/api/health') return json(res,200,{ok:true,version:'v37'});
     if(p==='/api/documents/upload'&&req.method==='POST'){
       const u=requireUser(req,res);if(!u)return;const b=await body(req),trip=Number(b.trip_id);
       if(!db.prepare('SELECT id FROM trips WHERE id=? AND user_id=?').get(trip,u.id))return json(res,403,{error:'Viagem inválida.'});

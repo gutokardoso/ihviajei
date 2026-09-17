@@ -1,4 +1,4 @@
-# Ih, viajei! v36
+# Ih, viajei! v37
 
 **Sua viagem na palma da mão.**
 
@@ -78,3 +78,8 @@ O banco SQLite persistente em `/app/data` não é incluído no ZIP e não deve s
 
 ## v36 — visualização integral de documentos
 - Imagens no modal agora são redimensionadas proporcionalmente para caber integralmente na área visível, sem corte e sem barra de rolagem.
+
+
+## v37
+- Seletor de moedas pode ser reaberto com um clique, sem limpar a seleção.
+- USD (Estados Unidos) é carregado por padrão ao abrir Câmbio.
