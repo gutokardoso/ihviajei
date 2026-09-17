@@ -88,7 +88,7 @@ async function api(req,res,url){
   const p=url.pathname;
   try{
     let m;
-    if(p==='/api/health') return json(res,200,{ok:true,version:'v35'});
+    if(p==='/api/health') return json(res,200,{ok:true,version:'v36'});
     if(p==='/api/documents/upload'&&req.method==='POST'){
       const u=requireUser(req,res);if(!u)return;const b=await body(req),trip=Number(b.trip_id);
       if(!db.prepare('SELECT id FROM trips WHERE id=? AND user_id=?').get(trip,u.id))return json(res,403,{error:'Viagem inválida.'});
@@ -178,7 +178,11 @@ async function api(req,res,url){
         points=[...byDate].map(([date,brl])=>({date,brl})).sort((a,b)=>a.date.localeCompare(b.date)); source='Banco Central do Brasil (PTAX)';
       }catch{}
       if(!points.length){try{const r=await fetch(`https://economia.awesomeapi.com.br/json/daily/${currency}-BRL/${Math.min(days,360)}`,{signal:AbortSignal.timeout(8000)});if(!r.ok)throw new Error('awesome');const d=await r.json();if(Array.isArray(d))points=d.map(x=>({date:new Date(Number(x.timestamp)*1000).toISOString().slice(0,10),brl:Number(x.bid||x.ask)})).filter(x=>x.date&&Number.isFinite(x.brl)&&x.brl>0).sort((a,b)=>a.date.localeCompare(b.date));if(points.length)source='AwesomeAPI / mercado de câmbio';}catch{}}
-      if(!points.length){try{const r=await fetch(`https://api.frankfurter.app/${iso(start)}..${iso(end)}?from=${currency}&to=BRL`,{signal:AbortSignal.timeout(8000)});if(!r.ok)throw new Error('fallback');const d=await r.json();points=Object.entries(d.rates||{}).map(([date,x])=>({date,brl:Number(x.BRL)})).filter(x=>Number.isFinite(x.brl));source='Frankfurter / referência do BCE';}catch{}}
+      // Frankfurter v2 agrega dezenas de bancos centrais/fontes oficiais e cobre a grande maioria das moedas correntes.
+      // Usamos a moeda estrangeira como base e BRL como cotação para obter diretamente o valor de 1 unidade em reais.
+      if(!points.length){try{const q=new URLSearchParams({base:currency,quotes:'BRL',from:iso(start),to:iso(end)});const r=await fetch(`https://api.frankfurter.dev/v2/rates?${q}`,{signal:AbortSignal.timeout(10000)});if(!r.ok)throw new Error('frankfurter-v2');const d=await r.json();if(Array.isArray(d))points=d.map(x=>({date:String(x.date||'').slice(0,10),brl:Number(x.rate)})).filter(x=>x.date&&Number.isFinite(x.brl)&&x.brl>0).sort((a,b)=>a.date.localeCompare(b.date));if(points.length)source='Frankfurter v2 · bancos centrais e fontes oficiais';}catch{}}
+      // Última tentativa: cotação cruzada via USD. É útil quando a fonte possui a moeda e o BRL, mas não publica o par direto.
+      if(!points.length){try{const [a,b]=await Promise.all([fetch(`https://api.frankfurter.dev/v2/rates?${new URLSearchParams({base:'USD',quotes:currency,from:iso(start),to:iso(end)})}`,{signal:AbortSignal.timeout(10000)}),fetch(`https://api.frankfurter.dev/v2/rates?${new URLSearchParams({base:'USD',quotes:'BRL',from:iso(start),to:iso(end)})}`,{signal:AbortSignal.timeout(10000)})]);if(!a.ok||!b.ok)throw new Error('cross');const [da,db]=await Promise.all([a.json(),b.json()]);const ca=new Map((Array.isArray(da)?da:[]).map(x=>[String(x.date||'').slice(0,10),Number(x.rate)]));points=(Array.isArray(db)?db:[]).map(x=>{const date=String(x.date||'').slice(0,10),foreign=ca.get(date),brl=Number(x.rate);return {date,brl:foreign>0&&brl>0?brl/foreign:NaN}}).filter(x=>x.date&&Number.isFinite(x.brl)&&x.brl>0).sort((a,b)=>a.date.localeCompare(b.date));if(points.length)source='Frankfurter v2 · cotação cruzada por fontes oficiais';}catch{}}
       if(!points.length)return json(res,503,{error:`Não foi possível obter histórico real de ${currency} nas fontes disponíveis neste momento.`});
       const vals=points.map(x=>x.brl),cur=vals.at(-1),avg=vals.reduce((a,b)=>a+b,0)/vals.length,min=Math.min(...vals),max=Math.max(...vals),position=max===min?50:100*(max-cur)/(max-min),trend=cur-vals[Math.max(0,vals.length-6)],score=Math.max(5,Math.min(95,Math.round(position*.7+(trend<0?20:trend>0?5:12))));
       return json(res,200,{currency,points,summary:{current:cur,average:avg,min,max,score,label:score>=75?'Boa oportunidade':score>=55?'Interessante':score>=40?'Neutro':'Preço elevado no histórico recente'},source});
