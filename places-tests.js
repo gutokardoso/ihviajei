@@ -1,5 +1,6 @@
 'use strict';
 const assert=require('node:assert/strict');
+const fs=require('node:fs'); const path=require('node:path'); const cleanupDb=()=>{for(const suffix of ['','-wal','-shm']){try{fs.unlinkSync(path.join(__dirname,'data/places-test.db'+suffix))}catch{}}}; cleanupDb();
 process.env.PORT='32001'; process.env.DB_PATH='./data/places-test.db'; process.env.APP_ORIGIN='http://localhost:32001';
 process.env.GOOGLE_PLACES_API_KEY='server-places-test-key'; delete process.env.GOOGLE_MAPS_API_KEY;
 const {normalizeGooglePlaces,googleNearbyRestaurants,assistantNearbyUI}=require('./server');
@@ -25,4 +26,4 @@ global.fetch=async (url,opt)=>{captured={url,opt,body:JSON.parse(opt.body)};retu
   const ui=assistantNearbyUI({nearby_restaurants:{reference_place:{name:'Hotel',address:'Lisboa',location:{latitude:38.725,longitude:-9.135}},results:rows}});
   assert.equal(ui.type,'nearby_restaurants'); assert.equal(ui.restaurants.length,2); assert.equal(ui.restaurants[0].image,'/api/place-photo?name=places%2Fabc%2Fphotos%2Fphoto1'); assert.ok(Number.isFinite(ui.restaurants[0].distance_meters));
   console.log('OK: Nearby Search e processamento da resposta Places API (New) validados.');
-} finally {global.fetch=realFetch; try{require('node:fs').unlinkSync(require('node:path').join(__dirname,'data/places-test.db'))}catch{}}})().catch(e=>{global.fetch=realFetch;console.error(e);process.exit(1)});
+} finally {global.fetch=realFetch; cleanupDb()}})().catch(e=>{global.fetch=realFetch;console.error(e);process.exit(1)});
