@@ -88,7 +88,23 @@ async function api(req,res,url){
   const p=url.pathname;
   try{
     let m;
-    if(p==='/api/health') return json(res,200,{ok:true,version:'v37'});
+    if(p==='/api/health') return json(res,200,{ok:true,version:'v38'});
+    if(p==='/api/flights/status'&&req.method==='GET'){
+      const u=requireUser(req,res);if(!u)return;
+      const number=clean(url.searchParams.get('number'),12).replace(/[^A-Za-z0-9]/g,'').toUpperCase(),date=clean(url.searchParams.get('date'),10);
+      if(!/^[A-Z0-9]{2,4}\d{1,4}[A-Z]?$/.test(number))return json(res,400,{error:'Informe um número de voo válido, por exemplo TP15 ou LA3368.'});
+      if(date&&!/^\d{4}-\d{2}-\d{2}$/.test(date))return json(res,400,{error:'Data do voo inválida.'});
+      const key=process.env.RAPIDAPI_KEY;if(!key)return json(res,503,{error:'Consulta de voos ainda não foi configurada.'});
+      const suffix=date?`/${encodeURIComponent(date)}?dateLocalRole=Departure`:'';
+      const endpoint=`https://aerodatabox.p.rapidapi.com/flights/number/${encodeURIComponent(number)}${suffix}`;
+      let rr;try{rr=await fetch(endpoint,{headers:{'x-rapidapi-key':key,'x-rapidapi-host':'aerodatabox.p.rapidapi.com'},signal:AbortSignal.timeout(15000)})}catch(e){console.error('[flights] AeroDataBox indisponível',e.message);return json(res,502,{error:'Não foi possível consultar o voo agora. Tente novamente em instantes.'})}
+      const text=await rr.text();let data;try{data=text?JSON.parse(text):null}catch{data=null}
+      if(!rr.ok){console.error('[flights] AeroDataBox',rr.status,text.slice(0,500));if(rr.status===404)return json(res,404,{error:'Nenhum voo encontrado para esse número e data.'});if(rr.status===429)return json(res,429,{error:'O limite de consultas de voos foi atingido. Tente novamente mais tarde.'});return json(res,502,{error:data?.message||'A consulta de voo não pôde ser concluída.'})}
+      const flights=Array.isArray(data)?data:(Array.isArray(data?.flights)?data.flights:[]);
+      const pickTime=x=>x?.revisedTime?.local||x?.scheduledTime?.local||x?.runwayTime?.local||null;
+      const out=flights.slice(0,8).map(f=>({number:f.number||number,status:f.status||'Unknown',airline:f.airline?.name||'',aircraft:f.aircraft?.model||f.aircraft?.reg||'',departure:{airport:f.departure?.airport?.name||'',iata:f.departure?.airport?.iata||'',terminal:f.departure?.terminal||'',gate:f.departure?.gate||'',time:pickTime(f.departure),scheduled:f.departure?.scheduledTime?.local||null,revised:f.departure?.revisedTime?.local||null},arrival:{airport:f.arrival?.airport?.name||'',iata:f.arrival?.airport?.iata||'',terminal:f.arrival?.terminal||'',gate:f.arrival?.gate||'',time:pickTime(f.arrival),scheduled:f.arrival?.scheduledTime?.local||null,revised:f.arrival?.revisedTime?.local||null}}));
+      return json(res,200,{number,date:date||null,flights:out,source:'AeroDataBox'});
+    }
     if(p==='/api/documents/upload'&&req.method==='POST'){
       const u=requireUser(req,res);if(!u)return;const b=await body(req),trip=Number(b.trip_id);
       if(!db.prepare('SELECT id FROM trips WHERE id=? AND user_id=?').get(trip,u.id))return json(res,403,{error:'Viagem inválida.'});
