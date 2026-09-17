@@ -138,3 +138,15 @@ input[type=file]{padding:9px;background:#fff}input[type=file]::file-selector-but
 #dayStops .listItem>div:not(.routeNumber){text-align:left;flex:1}
 .mapLoading{font-weight:500}
 @media(max-width:760px){.documentViewerDialog{width:96vw;height:88vh}.documentViewerModal{padding:16px}.documentPreviewFrame{min-height:70vh}.tripTabs>button.active,.tripGroupBtn.active{border-color:var(--teal);border-bottom-color:var(--coral)!important}}
+
+/* v32 — tipografia uniforme, preview sem rolagem e radar na home */
+body,body *,button,input,select,textarea,b,strong,h1,h2,h3,h4,h5,h6,label,.primary,.pill,.eyebrow,.rate,.score,.linkBtn,.back,.planName,.planPrice b,.badge,.adminBadge,.barValue,.planTag,.quoteBtn,.refreshBtn,.externalBtn,.authTabs button,.currencySwitch button,.routeNumber,.itemActions button,.brand,.brand small{font-weight:400!important}
+.documentViewerBody{overflow:hidden!important;min-width:0;min-height:0;padding:12px}
+.documentPreviewImage{width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important;margin:0!important}
+.homeRadarSection{padding:64px 0 76px;border-top:1px solid var(--line)}
+.homeRadarSection .sectionIntro{margin-bottom:28px}.homeRadarSection .sectionIntro p{color:var(--muted);font-size:18px}
+.homeRadarGrid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.homeRadarCard{display:block;width:100%;text-align:left;border:1px solid var(--line);border-radius:20px;padding:28px;background:#fff;transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease}
+.homeRadarCard:hover,.homeRadarCard:focus-visible{border-color:var(--teal);box-shadow:0 12px 32px rgba(0,164,180,.10);transform:translateY(-2px);outline:none}
+.homeRadarCard h3{font-size:20px;margin:0 0 18px}.homeRadarRate{font-size:38px;line-height:1.1;margin:8px 0 16px}.homeRadarScore{color:#168c72;margin-bottom:10px}.homeRadarCard small{font-size:14px;line-height:1.5}
+@media(max-width:760px){.homeRadarGrid{grid-template-columns:1fr}.homeRadarSection{padding:48px 0}.homeRadarRate{font-size:32px}}

@@ -1,4 +1,4 @@
-# Ih, viajei! v31
+# Ih, viajei! v32
 
 **Sua viagem na palma da mão.**
 
@@ -67,3 +67,10 @@ O banco SQLite persistente em `/app/data` não é incluído no ZIP e não deve s
 - visualização/baixa somente após autenticação e validação do proprietário no backend;
 - exclusão remove também o objeto do Storage;
 - compatibilidade temporária mantida com a variável legada `SUPABASE_SERVICE_ROLE_KEY`.
+
+
+## v32 — tipografia, visualização e Radar na home
+- Tipografia visual padronizada sem negrito em toda a interface.
+- Imagens de documentos ajustadas integralmente ao modal, sem barra de rolagem.
+- Radar EUR/BRL e USD/BRL adicionado abaixo do hero da página inicial, sem botões de atualização.
+- Cards do Radar na home são links para Câmbio e recebem contorno azul-petróleo no hover.
