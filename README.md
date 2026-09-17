@@ -1,4 +1,4 @@
-# Ih, viajei! v56
+# Ih, viajei! v57
 
 **Sua viagem na palma da mão.**
 
@@ -157,7 +157,7 @@ O banco SQLite persistente em `/app/data` não é incluído no ZIP e não deve s
 - pacote final sem banco SQLite, WAL/SHM, `node_modules`, `.env`, caches ou resíduos de teste.
 
 
-## v56
+## v57
 
 - Corrigido caractere de controle invisível (backspace) que havia sido inserido acidentalmente em uma expressão regular de `server.js` e podia causar falha no processamento pelo upload web do GitHub.
 - Pacote auditado para caracteres de controle, resíduos SQLite, arquivos temporários e integridade do ZIP.
