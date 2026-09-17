@@ -1,4 +1,4 @@
-# Ih, viajei! v39
+# Ih, viajei! v40
 
 **Sua viagem na palma da mão.**
 
@@ -89,3 +89,7 @@ O banco SQLite persistente em `/app/data` não é incluído no ZIP e não deve s
 - Integração real de status de voos com AeroDataBox via RapidAPI, usando `RAPIDAPI_KEY` somente no backend.
 - Consulta por número do voo e data dentro de Reservas, com origem, destino, horários, terminal, portão e status quando fornecidos pela fonte.
 - Tratamento de indisponibilidade, voo não encontrado e limite da API sem expor a chave ao navegador.
+
+## v40
+- Orçamento ganhou o campo **Reserva realizada**. Ao marcar, o item cria automaticamente uma reserva vinculada usando Categoria → Tipo, Cidade → Fornecedor, Descrição → Confirmação e Valor estimado → Valor.
+- A edição mantém orçamento e reserva vinculada sincronizados; ao desmarcar, remove somente a reserva vinculada. Ao remover o orçamento, a reserva vinculada também é removida.
