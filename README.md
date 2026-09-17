@@ -1,4 +1,4 @@
-# Ih, viajei! v29
+# Ih, viajei! v30
 
 **Sua viagem na palma da mão.**
 
@@ -57,3 +57,13 @@ O banco SQLite persistente em `/app/data` não é incluído no ZIP e não deve s
 - botões principais em azul-petróleo, CTAs de destaque em coral e cantos arredondados;
 - cartões, formulários, modais, navegação, estados ativos e mapa harmonizados com a nova identidade;
 - identidade aplicada sem alterar fluxos, dados ou integrações existentes.
+
+
+## v30 — documentos privados no Supabase Storage
+- integração alinhada às novas Secret API Keys do Supabase (`SUPABASE_SECRET_KEY`);
+- bucket privado `trip-documents`, sem URL pública permanente;
+- upload de PDF/JPG/PNG até 8 MB pelo backend;
+- caminho isolado por usuário e viagem (`users/{user}/trips/{trip}/...`);
+- visualização/baixa somente após autenticação e validação do proprietário no backend;
+- exclusão remove também o objeto do Storage;
+- compatibilidade temporária mantida com a variável legada `SUPABASE_SERVICE_ROLE_KEY`.
