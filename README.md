@@ -1,4 +1,4 @@
-# Ih, viajei! v71
+# Ih, viajei! v72
 
 **Sua viagem na palma da mão.**
 
@@ -214,3 +214,11 @@ O banco SQLite persistente em `/app/data` não é incluído no ZIP e não deve s
 - Histórico persistente em `alert_events`.
 - Envio externo por e-mail via Resend (`RESEND_API_KEY`) ou Brevo (`BREVO_API_KEY`); sem provedor configurado, o disparo fica registrado internamente.
 - Remetente configurável em `ALERT_FROM_EMAIL`.
+
+
+## v72 — gráfico interativo, compras removíveis e ajustes da home
+
+- Gráfico de histórico cambial com tooltip de data/valor e linha vertical no hover.
+- Exclusão real de compras de moeda, restrita ao proprietário.
+- Textos e preços da home atualizados.
+- Rodapé público adaptado à identidade Ih, viajei!.
