@@ -1,4 +1,4 @@
-# Ih, viajei! v65
+# Ih, viajei! v66
 
 **Sua viagem na palma da mão.**
 
@@ -191,3 +191,8 @@ O banco SQLite persistente em `/app/data` não é incluído no ZIP e não deve s
 - A área Reservas mostra o endereço exclusivo e um botão para copiá-lo.
 - Endereços antigos enviados ao `reservas@` continuam com o fluxo de compatibilidade da v63.
 - Para os endereços exclusivos funcionarem, o Catch-all do Cloudflare Email Routing deve enviar para o Worker `ihviajei-reservas`.
+
+
+## v66
+- Importação automática de reservas agora ignora mensagens de falha de entrega e só cadastra e-mails com sinais suficientes de uma reserva real.
+- Leitura MIME aprimorada para mensagens encaminhadas, multipart, HTML, quoted-printable e base64, priorizando o conteúdo original encaminhado.
