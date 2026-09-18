@@ -97,6 +97,48 @@ async function parseReservationEmail(subject,text){const fallback=()=>{const all
 
 function supabaseSecret(){return process.env.SUPABASE_SECRET_KEY||process.env.SUPABASE_SERVICE_ROLE_KEY||'';}
 function supabaseHeaders(key,extra={}){const h={apikey:key,...extra};if(!String(key).startsWith('sb_secret_'))h.authorization=`Bearer ${key}`;return h;}
+
+const BACKUP_BUCKET=String(process.env.SUPABASE_BACKUP_BUCKET||'database-backups').trim();
+const BACKUP_INTERVAL_HOURS=Math.max(1,Number(process.env.BACKUP_INTERVAL_HOURS||24));
+const BACKUP_RETENTION=Math.max(1,Math.min(100,Number(process.env.BACKUP_RETENTION||14)));
+let backupRunning=false;
+function sqlString(value){return `'${String(value).replace(/'/g,"''")}'`;}
+async function pruneDatabaseBackups(base,key,bucket){
+  try{
+    const rr=await fetch(`${base}/storage/v1/object/list/${encodeURIComponent(bucket)}`,{method:'POST',headers:supabaseHeaders(key,{'content-type':'application/json'}),body:JSON.stringify({prefix:'',limit:100,offset:0,sortBy:{column:'name',order:'desc'}}),signal:AbortSignal.timeout(20000)});
+    if(!rr.ok)throw new Error(`listagem HTTP ${rr.status}`);
+    const files=(await rr.json()).filter(x=>x&&x.name&&String(x.name).endsWith('.sqlite')).sort((a,b)=>String(b.name).localeCompare(String(a.name)));
+    const old=files.slice(BACKUP_RETENTION).map(x=>x.name);
+    if(old.length){
+      const del=await fetch(`${base}/storage/v1/object/${encodeURIComponent(bucket)}`,{method:'DELETE',headers:supabaseHeaders(key,{'content-type':'application/json'}),body:JSON.stringify({prefixes:old}),signal:AbortSignal.timeout(20000)});
+      if(!del.ok)throw new Error(`limpeza HTTP ${del.status}`);
+    }
+  }catch(err){console.warn('[backup] Backup criado, mas a retenção não pôde ser aplicada:',err.message)}
+}
+async function createDatabaseBackup(){
+  if(backupRunning)return {ok:false,skipped:'running'};
+  const base=String(process.env.SUPABASE_URL||'').replace(/\/$/,''),key=supabaseSecret(),bucket=BACKUP_BUCKET;
+  if(!base||!key||!bucket)return {ok:false,skipped:'not-configured'};
+  backupRunning=true;
+  const dir=path.dirname(DB_PATH),stamp=new Date().toISOString().replace(/[:.]/g,'-'),tmp=path.join(dir,`.ihviajei-backup-${process.pid}-${Date.now()}.sqlite`),name=`ihviajei-${stamp}.sqlite`;
+  try{
+    // VACUUM INTO cria um snapshot SQLite consistente mesmo com o banco em WAL.
+    db.exec(`VACUUM INTO ${sqlString(tmp)}`);
+    const bytes=fs.readFileSync(tmp);
+    if(!bytes.length)throw new Error('snapshot vazio');
+    const rr=await fetch(`${base}/storage/v1/object/${encodeURIComponent(bucket)}/${encodeURIComponent(name)}`,{method:'POST',headers:supabaseHeaders(key,{'content-type':'application/vnd.sqlite3','x-upsert':'false'}),body:bytes,signal:AbortSignal.timeout(60000)});
+    if(!rr.ok)throw new Error(`upload HTTP ${rr.status}: ${(await rr.text()).slice(0,200)}`);
+    await pruneDatabaseBackups(base,key,bucket);
+    console.log(`[backup] SQLite enviado com sucesso: ${name} (${bytes.length} bytes)`);
+    return {ok:true,name,size:bytes.length};
+  }catch(err){console.error('[backup] Falha no backup automático:',err.message);return {ok:false,error:err.message};}
+  finally{backupRunning=false;try{if(fs.existsSync(tmp))fs.unlinkSync(tmp)}catch{}}
+}
+function startDatabaseBackups(){
+  const first=Math.max(1000,Number(process.env.BACKUP_START_DELAY_MS||90000));
+  const run=()=>createDatabaseBackup().catch(err=>console.error('[backup] Erro inesperado:',err.message));
+  const firstTimer=setTimeout(()=>{run();const timer=setInterval(run,BACKUP_INTERVAL_HOURS*60*60*1000);timer.unref?.();},first);firstTimer.unref?.();
+}
 function secureCookie(req,token){const secure=(req.headers['x-forwarded-proto']==='https'); return `session=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${SESSION_DAYS*86400}${secure?'; Secure':''}`;}
 function institutionAction(name){
   const n=String(name||'').toUpperCase();
@@ -253,7 +295,7 @@ async function api(req,res,url){
   const p=url.pathname;
   try{
     let m;
-    if(p==='/api/health') return json(res,200,{ok:true,version:'v69'});
+    if(p==='/api/health') return json(res,200,{ok:true,version:'v70'});
     if(p==='/api/email/reservas'&&req.method==='POST'){
       if(!rateLimit(req,res,'reservation-email',240,60*60*1000))return;
       const expected=String(process.env.IHVIAJEI_RESERVAS_SECRET||'');
@@ -452,5 +494,5 @@ async function api(req,res,url){
 const mime={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.ico':'image/x-icon'};
 function staticFile(req,res,url){let rel=url.pathname==='/'?'index.html':url.pathname.slice(1);rel=path.normalize(rel).replace(/^(\.\.[/\\])+/, '');const base=path.join(__dirname,'public'),f=path.join(base,rel);if(!f.startsWith(base)||!fs.existsSync(f)||fs.statSync(f).isDirectory()){res.writeHead(404);return res.end('Not found');}res.writeHead(200,{'content-type':mime[path.extname(f)]||'application/octet-stream','cache-control':'no-cache, no-store, must-revalidate','pragma':'no-cache','expires':'0',...securityHeaders(),'content-security-policy':"default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' https://maps.googleapis.com https://maps.gstatic.com; connect-src 'self' https://api.frankfurter.app https://maps.googleapis.com https://places.googleapis.com; img-src 'self' data: https: blob:; frame-src https://www.google.com; base-uri 'none'; frame-ancestors 'none'"});fs.createReadStream(f).pipe(res);}
 const server=http.createServer((req,res)=>{const url=new URL(req.url,`http://${req.headers.host||'localhost'}`);if(url.pathname.startsWith('/api/'))api(req,res,url);else staticFile(req,res,url);});
-if(require.main===module)server.listen(PORT,HOST,()=>console.log(`Ih, viajei! v69 em http://${HOST}:${PORT}`));
-module.exports={server,db,hashPassword,verifyPassword,normalizeGooglePlaces,googlePlaceSearch,googleNearbyRestaurants,assistantNearbyUI,distanceMeters,openMeteoForecast};
+if(require.main===module)server.listen(PORT,HOST,()=>{console.log(`Ih, viajei! v70 em http://${HOST}:${PORT}`);startDatabaseBackups();});
+module.exports={server,db,hashPassword,verifyPassword,normalizeGooglePlaces,googlePlaceSearch,googleNearbyRestaurants,assistantNearbyUI,distanceMeters,openMeteoForecast,createDatabaseBackup,pruneDatabaseBackups};

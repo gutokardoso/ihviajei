@@ -1,4 +1,4 @@
-# Ih, viajei! v69
+# Ih, viajei! v70
 
 **Sua viagem na palma da mão.**
 
@@ -196,3 +196,12 @@ O banco SQLite persistente em `/app/data` não é incluído no ZIP e não deve s
 ## v69
 - Importação automática de reservas agora ignora mensagens de falha de entrega e só cadastra e-mails com sinais suficientes de uma reserva real.
 - Leitura MIME aprimorada para mensagens encaminhadas, multipart, HTML, quoted-printable e base64, priorizando o conteúdo original encaminhado.
+
+
+## v70
+- Backup automático consistente do SQLite com `VACUUM INTO`, compatível com o modo WAL.
+- Envio do snapshot para o bucket privado `database-backups` do Supabase usando apenas a credencial do backend.
+- Primeiro backup após o boot e novos backups a cada 24 horas por padrão.
+- Retenção automática dos 14 snapshots mais recentes por padrão.
+- Arquivo temporário local é removido após cada tentativa de upload.
+- Configuração opcional por `SUPABASE_BACKUP_BUCKET`, `BACKUP_INTERVAL_HOURS`, `BACKUP_RETENTION` e `BACKUP_START_DELAY_MS`.
