@@ -1,4 +1,4 @@
-# Ih, viajei! v61
+# Ih, viajei! v62
 
 **Sua viagem na palma da mão.**
 
@@ -177,3 +177,9 @@ O banco SQLite persistente em `/app/data` não é incluído no ZIP e não deve s
 - Editar permite alterar nome, e-mail e plano com validação no servidor.
 - Visualizar reúne viagens e dados cadastrados do viajante em modo somente leitura.
 - Refinado o alinhamento vertical da seta do submenu Cadastrar.
+
+
+## v62
+- Endpoint autenticado `POST /api/email/reservas` para receber e-mails do Cloudflare Email Worker.
+- Validação do segredo `IHVIAJEI_RESERVAS_SECRET` com comparação segura.
+- Armazenamento persistente do e-mail recebido e associação ao usuário quando o remetente corresponde ao e-mail cadastrado.

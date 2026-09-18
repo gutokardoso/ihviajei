@@ -53,6 +53,7 @@ try{db.exec("ALTER TABLE reservations ADD COLUMN source_budget_id INTEGER")}catc
 db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_reservations_source_budget ON reservations(user_id,source_budget_id) WHERE source_budget_id IS NOT NULL;');
 db.exec(`CREATE TABLE IF NOT EXISTS trip_tools(id INTEGER PRIMARY KEY,user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,trip_id INTEGER NOT NULL REFERENCES trips(id) ON DELETE CASCADE,type TEXT NOT NULL,data TEXT NOT NULL DEFAULT '{}',created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP); CREATE INDEX IF NOT EXISTS idx_trip_tools ON trip_tools(trip_id,type);`);
 db.exec(`CREATE TABLE IF NOT EXISTS assistant_messages(id INTEGER PRIMARY KEY,user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,trip_id INTEGER NOT NULL REFERENCES trips(id) ON DELETE CASCADE,role TEXT NOT NULL CHECK(role IN ('user','assistant')),content TEXT NOT NULL DEFAULT '',ui TEXT NOT NULL DEFAULT '',created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP); CREATE INDEX IF NOT EXISTS idx_assistant_messages_trip ON assistant_messages(trip_id,id);`);
+db.exec(`CREATE TABLE IF NOT EXISTS inbound_reservation_emails(id INTEGER PRIMARY KEY,user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,sender TEXT NOT NULL,recipient TEXT NOT NULL DEFAULT '',raw_email TEXT NOT NULL,processing_status TEXT NOT NULL DEFAULT 'received',created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP); CREATE INDEX IF NOT EXISTS idx_inbound_reservation_user ON inbound_reservation_emails(user_id,created_at);`);
 db.exec(`CREATE TABLE IF NOT EXISTS travel_guides(id INTEGER PRIMARY KEY,title TEXT NOT NULL,destination TEXT NOT NULL,hero_image TEXT NOT NULL,intro TEXT NOT NULL,published_at TEXT NOT NULL,sections TEXT NOT NULL DEFAULT '[]',created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP); CREATE INDEX IF NOT EXISTS idx_travel_guides_published ON travel_guides(published_at DESC);`);
 
 function hashPassword(password,salt=crypto.randomBytes(16).toString('hex')){ const h=crypto.scryptSync(password,salt,64).toString('hex'); return `scrypt$${salt}$${h}`; }
@@ -70,6 +71,8 @@ function originOK(req){if(!['POST','PUT','PATCH','DELETE'].includes(req.method))
 function requireUser(req,res){const u=currentUser(req); if(!u)json(res,401,{error:'Não autenticado'}); return u;}
 function num(v,min=0){const n=Number(v);return Number.isFinite(n)&&n>=min?n:null;}
 function clean(s,max=200){return String(s||'').trim().slice(0,max);}
+function secureEqualText(a,b){const aa=Buffer.from(String(a||'')),bb=Buffer.from(String(b||''));return aa.length===bb.length&&aa.length>0&&crypto.timingSafeEqual(aa,bb);}
+function senderAddress(value){const s=String(value||'').trim();const m=s.match(/<([^<>\s]+@[^<>\s]+)>/);return normalizeEmail(m?m[1]:s);}
 function supabaseSecret(){return process.env.SUPABASE_SECRET_KEY||process.env.SUPABASE_SERVICE_ROLE_KEY||'';}
 function supabaseHeaders(key,extra={}){const h={apikey:key,...extra};if(!String(key).startsWith('sb_secret_'))h.authorization=`Bearer ${key}`;return h;}
 function secureCookie(req,token){const secure=(req.headers['x-forwarded-proto']==='https'); return `session=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${SESSION_DAYS*86400}${secure?'; Secure':''}`;}
@@ -228,7 +231,18 @@ async function api(req,res,url){
   const p=url.pathname;
   try{
     let m;
-    if(p==='/api/health') return json(res,200,{ok:true,version:'v61'});
+    if(p==='/api/health') return json(res,200,{ok:true,version:'v62'});
+    if(p==='/api/email/reservas'&&req.method==='POST'){
+      const expected=String(process.env.IHVIAJEI_RESERVAS_SECRET||'');
+      if(!expected)return json(res,503,{error:'Recebimento automático de reservas não configurado.'});
+      if(!secureEqualText(req.headers['x-ihviajei-secret'],expected))return json(res,401,{error:'Não autorizado.'});
+      const b=await body(req),sender=senderAddress(b.from),recipient=clean(b.to,320),raw=String(b.raw||'');
+      if(!validEmail(sender)||!recipient||!raw)return json(res,400,{error:'E-mail recebido incompleto.'});
+      if(Buffer.byteLength(raw,'utf8')>10*1024*1024)return json(res,413,{error:'E-mail excede o limite de 10 MB.'});
+      const user=db.prepare("SELECT id FROM users WHERE lower(email)=?").get(sender);
+      const r=db.prepare('INSERT INTO inbound_reservation_emails(user_id,sender,recipient,raw_email) VALUES(?,?,?,?)').run(user?.id||null,sender,recipient,raw);
+      return json(res,202,{ok:true,id:Number(r.lastInsertRowid),matched_user:!!user});
+    }
     if(p==='/api/flights/status'&&req.method==='GET'){
       const u=requireUser(req,res);if(!u)return;
       const number=clean(url.searchParams.get('number'),12).replace(/[^A-Za-z0-9]/g,'').toUpperCase(),date=clean(url.searchParams.get('date'),10);
@@ -402,5 +416,5 @@ async function api(req,res,url){
 const mime={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.ico':'image/x-icon'};
 function staticFile(req,res,url){let rel=url.pathname==='/'?'index.html':url.pathname.slice(1);rel=path.normalize(rel).replace(/^(\.\.[/\\])+/, '');const base=path.join(__dirname,'public'),f=path.join(base,rel);if(!f.startsWith(base)||!fs.existsSync(f)||fs.statSync(f).isDirectory()){res.writeHead(404);return res.end('Not found');}res.writeHead(200,{'content-type':mime[path.extname(f)]||'application/octet-stream','cache-control':'no-cache, no-store, must-revalidate','pragma':'no-cache','expires':'0','x-content-type-options':'nosniff','referrer-policy':'strict-origin-when-cross-origin','content-security-policy':"default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' https://maps.googleapis.com https://maps.gstatic.com; connect-src 'self' https://api.frankfurter.app https://maps.googleapis.com https://places.googleapis.com; img-src 'self' data: https: blob:; frame-src https://www.google.com; base-uri 'none'; frame-ancestors 'none'"});fs.createReadStream(f).pipe(res);}
 const server=http.createServer((req,res)=>{const url=new URL(req.url,`http://${req.headers.host||'localhost'}`);if(url.pathname.startsWith('/api/'))api(req,res,url);else staticFile(req,res,url);});
-if(require.main===module)server.listen(PORT,HOST,()=>console.log(`Ih, viajei! v61 em http://${HOST}:${PORT}`));
+if(require.main===module)server.listen(PORT,HOST,()=>console.log(`Ih, viajei! v62 em http://${HOST}:${PORT}`));
 module.exports={server,db,hashPassword,verifyPassword,normalizeGooglePlaces,googlePlaceSearch,googleNearbyRestaurants,assistantNearbyUI,distanceMeters,openMeteoForecast};
