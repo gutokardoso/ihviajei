@@ -1,4 +1,4 @@
-# Ih, viajei! v70
+# Ih, viajei! v71
 
 **Sua viagem na palma da mão.**
 
@@ -198,10 +198,19 @@ O banco SQLite persistente em `/app/data` não é incluído no ZIP e não deve s
 - Leitura MIME aprimorada para mensagens encaminhadas, multipart, HTML, quoted-printable e base64, priorizando o conteúdo original encaminhado.
 
 
-## v70
+## v71
 - Backup automático consistente do SQLite com `VACUUM INTO`, compatível com o modo WAL.
 - Envio do snapshot para o bucket privado `database-backups` do Supabase usando apenas a credencial do backend.
 - Primeiro backup após o boot e novos backups a cada 24 horas por padrão.
 - Retenção automática dos 14 snapshots mais recentes por padrão.
 - Arquivo temporário local é removido após cada tentativa de upload.
 - Configuração opcional por `SUPABASE_BACKUP_BUCKET`, `BACKUP_INTERVAL_HOURS`, `BACKUP_RETENTION` e `BACKUP_START_DELAY_MS`.
+
+
+## v71 — monitoramento automático de alertas de câmbio
+- Verificação automática no servidor a cada 60 minutos (configurável por `ALERT_CHECK_MINUTES`, mínimo 15).
+- Cotação real com fallback Frankfurter → AwesomeAPI.
+- Disparo somente na entrada da condição e rearme quando a cotação sai dela, evitando repetição.
+- Histórico persistente em `alert_events`.
+- Envio externo por e-mail via Resend (`RESEND_API_KEY`) ou Brevo (`BREVO_API_KEY`); sem provedor configurado, o disparo fica registrado internamente.
+- Remetente configurável em `ALERT_FROM_EMAIL`.

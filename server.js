@@ -42,6 +42,7 @@ CREATE TABLE IF NOT EXISTS sessions(token_hash TEXT PRIMARY KEY, user_id INTEGER
 CREATE TABLE IF NOT EXISTS trips(id INTEGER PRIMARY KEY, user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE, name TEXT NOT NULL, destinations TEXT NOT NULL DEFAULT '', start_date TEXT, end_date TEXT, travelers INTEGER NOT NULL DEFAULT 1, profile TEXT NOT NULL DEFAULT 'moderado', currency TEXT NOT NULL DEFAULT 'EUR', target_amount REAL NOT NULL DEFAULT 0, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
 CREATE TABLE IF NOT EXISTS purchases(id INTEGER PRIMARY KEY, user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE, trip_id INTEGER REFERENCES trips(id) ON DELETE SET NULL, currency TEXT NOT NULL, amount REAL NOT NULL, total_brl REAL NOT NULL, vet REAL NOT NULL, provider TEXT NOT NULL DEFAULT '', purchased_at TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
 CREATE TABLE IF NOT EXISTS alerts(id INTEGER PRIMARY KEY, user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE, currency TEXT NOT NULL, kind TEXT NOT NULL, threshold REAL NOT NULL, enabled INTEGER NOT NULL DEFAULT 1, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
+CREATE TABLE IF NOT EXISTS alert_events(id INTEGER PRIMARY KEY, alert_id INTEGER NOT NULL REFERENCES alerts(id) ON DELETE CASCADE, user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE, currency TEXT NOT NULL, rate REAL NOT NULL, threshold REAL NOT NULL, kind TEXT NOT NULL, delivery TEXT NOT NULL DEFAULT 'in_app', created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
 CREATE TABLE IF NOT EXISTS budget_items(id INTEGER PRIMARY KEY,user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,trip_id INTEGER NOT NULL REFERENCES trips(id) ON DELETE CASCADE,country TEXT NOT NULL DEFAULT '',city TEXT NOT NULL DEFAULT '',category TEXT NOT NULL,description TEXT NOT NULL DEFAULT '',amount REAL NOT NULL DEFAULT 0,paid INTEGER NOT NULL DEFAULT 0,created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
 CREATE TABLE IF NOT EXISTS itinerary_items(id INTEGER PRIMARY KEY,user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,trip_id INTEGER NOT NULL REFERENCES trips(id) ON DELETE CASCADE,item_date TEXT,title TEXT NOT NULL,location TEXT NOT NULL DEFAULT '',notes TEXT NOT NULL DEFAULT '',created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
 CREATE TABLE IF NOT EXISTS reservations(id INTEGER PRIMARY KEY,user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,trip_id INTEGER NOT NULL REFERENCES trips(id) ON DELETE CASCADE,kind TEXT NOT NULL,provider TEXT NOT NULL DEFAULT '',confirmation TEXT NOT NULL DEFAULT '',amount_brl REAL NOT NULL DEFAULT 0,status TEXT NOT NULL DEFAULT 'pendente',created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
@@ -59,6 +60,10 @@ function reservationEmailAddress(token){const domain=String(process.env.RESERVAS
 function reservationTripByRecipient(recipient){const addr=String(recipient||'').toLowerCase().match(/[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i)?.[0]||'';const local=addr.split('@')[0];if(!/^res-[a-f0-9]{24}$/.test(local))return null;return db.prepare('SELECT id,user_id,name FROM trips WHERE reservation_email_token=?').get(local)||null;}
 try{db.exec("ALTER TABLE budget_items ADD COLUMN split_names TEXT NOT NULL DEFAULT '[]'")}catch(e){if(!String(e.message).includes('duplicate column'))throw e}
 try{db.exec("ALTER TABLE users ADD COLUMN plan TEXT NOT NULL DEFAULT 'gratuito'")}catch(e){if(!String(e.message).includes('duplicate column'))throw e}
+try{db.exec("ALTER TABLE alerts ADD COLUMN last_condition INTEGER NOT NULL DEFAULT 0")}catch(e){if(!String(e.message).includes('duplicate column'))throw e}
+try{db.exec("ALTER TABLE alerts ADD COLUMN last_triggered_at TEXT")}catch(e){if(!String(e.message).includes('duplicate column'))throw e}
+try{db.exec("ALTER TABLE alerts ADD COLUMN last_rate REAL")}catch(e){if(!String(e.message).includes('duplicate column'))throw e}
+db.exec('CREATE INDEX IF NOT EXISTS idx_alert_events_user ON alert_events(user_id,id DESC);');
 try{db.exec("ALTER TABLE reservations ADD COLUMN source_budget_id INTEGER")}catch(e){if(!String(e.message).includes('duplicate column'))throw e}
 db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_reservations_source_budget ON reservations(user_id,source_budget_id) WHERE source_budget_id IS NOT NULL;');
 db.exec(`CREATE TABLE IF NOT EXISTS trip_tools(id INTEGER PRIMARY KEY,user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,trip_id INTEGER NOT NULL REFERENCES trips(id) ON DELETE CASCADE,type TEXT NOT NULL,data TEXT NOT NULL DEFAULT '{}',created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP); CREATE INDEX IF NOT EXISTS idx_trip_tools ON trip_tools(trip_id,type);`);
@@ -115,6 +120,50 @@ async function pruneDatabaseBackups(base,key,bucket){
     }
   }catch(err){console.warn('[backup] Backup criado, mas a retenção não pôde ser aplicada:',err.message)}
 }
+
+const ALERT_CHECK_MINUTES=Math.max(15,Number(process.env.ALERT_CHECK_MINUTES||60));
+let alertMonitorRunning=false;
+function alertCondition(kind,rate,threshold){return kind==='below'?rate<=threshold:rate>=threshold;}
+async function latestFxRate(currency){
+  const sources=[
+    async()=>{const r=await fetch(`https://api.frankfurter.app/latest?from=${currency}&to=BRL`,{signal:AbortSignal.timeout(7000)});if(!r.ok)throw new Error('Frankfurter');const d=await r.json();return {rate:Number(d.rates?.BRL),source:'Frankfurter'}},
+    async()=>{const r=await fetch(`https://economia.awesomeapi.com.br/json/last/${currency}-BRL`,{signal:AbortSignal.timeout(7000)});if(!r.ok)throw new Error('AwesomeAPI');const d=await r.json();return {rate:Number(d[`${currency}BRL`]?.bid||d[`${currency}BRL`]?.ask),source:'AwesomeAPI'}}
+  ];
+  for(const get of sources){try{const x=await get();if(Number.isFinite(x.rate)&&x.rate>0)return x}catch{}}
+  throw new Error(`cotação ${currency}/BRL indisponível`);
+}
+async function sendAlertEmail(user,alert,rate){
+  const subject=`Ih, viajei! · ${alert.currency} atingiu seu alerta`;
+  const direction=alert.kind==='below'?'abaixo ou igual a':'acima ou igual a';
+  const body=`Olá, ${user.name}.\n\nA cotação de referência de ${alert.currency} está em R$ ${rate.toFixed(4)}, ${direction} R$ ${Number(alert.threshold).toFixed(4)}, conforme o alerta que você criou no Ih, viajei!.\n\nConsulte o VET da instituição antes de realizar uma compra.\n\nIh, viajei! — Sua viagem na palma da mão.`;
+  const resend=process.env.RESEND_API_KEY,brevo=process.env.BREVO_API_KEY;
+  const from=process.env.ALERT_FROM_EMAIL||'Ih, viajei! <alertas@ihviajei.com.br>';
+  if(resend){const r=await fetch('https://api.resend.com/emails',{method:'POST',headers:{authorization:`Bearer ${resend}`,'content-type':'application/json'},body:JSON.stringify({from,to:[user.email],subject,text:body}),signal:AbortSignal.timeout(12000)});if(!r.ok)throw new Error(`Resend HTTP ${r.status}`);return 'email:resend';}
+  if(brevo){const m=from.match(/^(.*?)\s*<([^>]+)>$/),sender=m?{name:m[1].trim(),email:m[2]}:{name:'Ih, viajei!',email:from};const r=await fetch('https://api.brevo.com/v3/smtp/email',{method:'POST',headers:{'api-key':brevo,'content-type':'application/json'},body:JSON.stringify({sender,to:[{email:user.email,name:user.name}],subject,textContent:body}),signal:AbortSignal.timeout(12000)});if(!r.ok)throw new Error(`Brevo HTTP ${r.status}`);return 'email:brevo';}
+  return 'in_app';
+}
+async function checkCurrencyAlerts(){
+  if(alertMonitorRunning)return {ok:false,skipped:'running'}; alertMonitorRunning=true;
+  try{
+    const rows=db.prepare("SELECT a.*,u.name,u.email FROM alerts a JOIN users u ON u.id=a.user_id WHERE a.enabled=1 ORDER BY a.currency,a.id").all();
+    const rates=new Map(); let triggered=0;
+    for(const a of rows){
+      let fx=rates.get(a.currency);if(!fx){try{fx=await latestFxRate(a.currency);rates.set(a.currency,fx)}catch(e){console.warn('[alerts]',e.message);continue}}
+      const active=alertCondition(a.kind,fx.rate,Number(a.threshold)),was=Boolean(a.last_condition);
+      if(active&&!was){
+        let delivery='in_app';try{delivery=await sendAlertEmail({name:a.name,email:a.email},a,fx.rate)}catch(e){console.warn(`[alerts] E-mail para ${a.email} falhou:`,e.message);delivery='in_app:email_failed'}
+        db.exec('BEGIN');try{db.prepare('INSERT INTO alert_events(alert_id,user_id,currency,rate,threshold,kind,delivery) VALUES(?,?,?,?,?,?,?)').run(a.id,a.user_id,a.currency,fx.rate,a.threshold,a.kind,delivery);db.prepare("UPDATE alerts SET last_condition=1,last_triggered_at=CURRENT_TIMESTAMP,last_rate=? WHERE id=?").run(fx.rate,a.id);db.exec('COMMIT');triggered++;}catch(e){try{db.exec('ROLLBACK')}catch{}throw e}
+      }else db.prepare('UPDATE alerts SET last_condition=?,last_rate=? WHERE id=?').run(active?1:0,fx.rate,a.id);
+    }
+    if(rows.length)console.log(`[alerts] ${rows.length} alerta(s) verificado(s); ${triggered} disparo(s).`);
+    return {ok:true,checked:rows.length,triggered};
+  }finally{alertMonitorRunning=false}
+}
+function startCurrencyAlerts(){
+  const run=()=>checkCurrencyAlerts().catch(e=>console.error('[alerts] Erro inesperado:',e.message));
+  const first=setTimeout(()=>{run();const timer=setInterval(run,ALERT_CHECK_MINUTES*60*1000);timer.unref?.();},30000);first.unref?.();
+}
+
 async function createDatabaseBackup(){
   if(backupRunning)return {ok:false,skipped:'running'};
   const base=String(process.env.SUPABASE_URL||'').replace(/\/$/,''),key=supabaseSecret(),bucket=BACKUP_BUCKET;
@@ -438,6 +487,7 @@ async function api(req,res,url){
     if(p==='/api/purchases'&&req.method==='GET'){const u=requireUser(req,res);if(!u)return;return json(res,200,db.prepare('SELECT p.*,t.name trip_name FROM purchases p LEFT JOIN trips t ON t.id=p.trip_id WHERE p.user_id=? ORDER BY purchased_at DESC,id DESC').all(u.id));}
     if(p==='/api/purchases'&&req.method==='POST'){const u=requireUser(req,res);if(!u)return;const b=await body(req),amount=num(b.amount,0.01),total=num(b.total_brl,0.01),trip=b.trip_id?Number(b.trip_id):null,currency=clean(b.currency,3).toUpperCase(),date=clean(b.purchased_at,10);if(!amount||!total||!date||!trip||!['EUR','USD','GBP','CHF'].includes(currency))return json(res,400,{error:'Selecione uma viagem e preencha os dados da compra.'});if(!db.prepare('SELECT id FROM trips WHERE id=? AND user_id=?').get(trip,u.id))return json(res,403,{error:'Viagem inválida.'});const vet=total/amount;const r=db.prepare('INSERT INTO purchases(user_id,trip_id,currency,amount,total_brl,vet,provider,purchased_at) VALUES(?,?,?,?,?,?,?,?)').run(u.id,trip,currency,amount,total,vet,clean(b.provider,100),date);return json(res,201,{id:Number(r.lastInsertRowid),vet});}
     if(p==='/api/alerts'&&req.method==='GET'){const u=requireUser(req,res);if(!u)return;return json(res,200,db.prepare('SELECT * FROM alerts WHERE user_id=? ORDER BY id DESC').all(u.id));}
+    if(p==='/api/alert-events'&&req.method==='GET'){const u=requireUser(req,res);if(!u)return;return json(res,200,db.prepare('SELECT * FROM alert_events WHERE user_id=? ORDER BY id DESC LIMIT 20').all(u.id));}
     if(p==='/api/alerts'&&req.method==='POST'){const u=requireUser(req,res);if(!u)return;const b=await body(req),currency=clean(b.currency,3).toUpperCase(),kind=clean(b.kind,20),threshold=num(b.threshold,0);if(!['EUR','USD'].includes(currency)||!['below','above'].includes(kind)||threshold===null)return json(res,400,{error:'Alerta inválido.'});const r=db.prepare('INSERT INTO alerts(user_id,currency,kind,threshold) VALUES(?,?,?,?)').run(u.id,currency,kind,threshold);return json(res,201,{id:Number(r.lastInsertRowid)});}
     m=p.match(/^\/api\/alerts\/(\d+)$/); if(m&&req.method==='DELETE'){const u=requireUser(req,res);if(!u)return;db.prepare('DELETE FROM alerts WHERE id=? AND user_id=?').run(Number(m[1]),u.id);return json(res,200,{ok:true});}
     if(p==='/api/rates'&&req.method==='GET'){const currency=(url.searchParams.get('currency')||'EUR').toUpperCase();if(!['EUR','USD','GBP','CHF'].includes(currency))return json(res,400,{error:'Moeda inválida.'});try{const r=await fetch(`https://api.frankfurter.app/latest?from=${currency}&to=BRL`,{signal:AbortSignal.timeout(6000)});if(!r.ok)throw new Error('upstream');const d=await r.json();return json(res,200,{currency,brl:d.rates.BRL,date:d.date,source:'Frankfurter / dados de referência do BCE'});}catch{return json(res,503,{error:'Cotação indisponível no momento. Nenhum valor fictício foi exibido.'});}}
@@ -494,5 +544,5 @@ async function api(req,res,url){
 const mime={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.ico':'image/x-icon'};
 function staticFile(req,res,url){let rel=url.pathname==='/'?'index.html':url.pathname.slice(1);rel=path.normalize(rel).replace(/^(\.\.[/\\])+/, '');const base=path.join(__dirname,'public'),f=path.join(base,rel);if(!f.startsWith(base)||!fs.existsSync(f)||fs.statSync(f).isDirectory()){res.writeHead(404);return res.end('Not found');}res.writeHead(200,{'content-type':mime[path.extname(f)]||'application/octet-stream','cache-control':'no-cache, no-store, must-revalidate','pragma':'no-cache','expires':'0',...securityHeaders(),'content-security-policy':"default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' https://maps.googleapis.com https://maps.gstatic.com; connect-src 'self' https://api.frankfurter.app https://maps.googleapis.com https://places.googleapis.com; img-src 'self' data: https: blob:; frame-src https://www.google.com; base-uri 'none'; frame-ancestors 'none'"});fs.createReadStream(f).pipe(res);}
 const server=http.createServer((req,res)=>{const url=new URL(req.url,`http://${req.headers.host||'localhost'}`);if(url.pathname.startsWith('/api/'))api(req,res,url);else staticFile(req,res,url);});
-if(require.main===module)server.listen(PORT,HOST,()=>{console.log(`Ih, viajei! v70 em http://${HOST}:${PORT}`);startDatabaseBackups();});
-module.exports={server,db,hashPassword,verifyPassword,normalizeGooglePlaces,googlePlaceSearch,googleNearbyRestaurants,assistantNearbyUI,distanceMeters,openMeteoForecast,createDatabaseBackup,pruneDatabaseBackups};
+if(require.main===module)server.listen(PORT,HOST,()=>{console.log(`Ih, viajei! v71 em http://${HOST}:${PORT}`);startDatabaseBackups();startCurrencyAlerts();});
+module.exports={server,db,hashPassword,verifyPassword,normalizeGooglePlaces,googlePlaceSearch,googleNearbyRestaurants,assistantNearbyUI,distanceMeters,openMeteoForecast,createDatabaseBackup,pruneDatabaseBackups,alertCondition,latestFxRate,checkCurrencyAlerts};
