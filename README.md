@@ -1,4 +1,4 @@
-# Ih, viajei! v72
+# Ih, viajei! v74
 
 **Sua viagem na palma da mão.**
 
@@ -216,9 +216,16 @@ O banco SQLite persistente em `/app/data` não é incluído no ZIP e não deve s
 - Remetente configurável em `ALERT_FROM_EMAIL`.
 
 
-## v72 — gráfico interativo, compras removíveis e ajustes da home
+## v74 — gráfico interativo, compras removíveis e ajustes da home
 
 - Gráfico de histórico cambial com tooltip de data/valor e linha vertical no hover.
 - Exclusão real de compras de moeda, restrita ao proprietário.
 - Textos e preços da home atualizados.
 - Rodapé público adaptado à identidade Ih, viajei!.
+
+
+## v74 — CTAs conscientes da sessão
+
+- CTAs de acesso/cadastro não exibem mais login ou criação de conta quando a sessão já está autenticada.
+- Usuário autenticado recebe a informação de que já está conectado e é direcionado para seu painel/Minhas viagens.
+- Fluxos deslogados continuam abrindo Entrar ou Criar conta normalmente.
