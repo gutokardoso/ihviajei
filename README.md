@@ -1,4 +1,4 @@
-# Ih, viajei! v63
+# Ih, viajei! v64
 
 **Sua viagem na palma da mão.**
 
@@ -183,3 +183,11 @@ O banco SQLite persistente em `/app/data` não é incluído no ZIP e não deve s
 - Endpoint autenticado `POST /api/email/reservas` para receber e-mails do Cloudflare Email Worker.
 - Validação do segredo `IHVIAJEI_RESERVAS_SECRET` com comparação segura.
 - Armazenamento persistente do e-mail recebido e associação ao usuário quando o remetente corresponde ao e-mail cadastrado.
+
+
+## v64
+- Cada viagem recebe um endereço exclusivo de importação de reservas (`res-...@ihviajei.com.br`).
+- O backend identifica a viagem pelo destinatário, sem depender do e-mail do remetente.
+- A área Reservas mostra o endereço exclusivo e um botão para copiá-lo.
+- Endereços antigos enviados ao `reservas@` continuam com o fluxo de compatibilidade da v63.
+- Para os endereços exclusivos funcionarem, o Catch-all do Cloudflare Email Routing deve enviar para o Worker `ihviajei-reservas`.
