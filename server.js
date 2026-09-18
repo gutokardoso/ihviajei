@@ -228,7 +228,7 @@ async function api(req,res,url){
   const p=url.pathname;
   try{
     let m;
-    if(p==='/api/health') return json(res,200,{ok:true,version:'v59'});
+    if(p==='/api/health') return json(res,200,{ok:true,version:'v60'});
     if(p==='/api/flights/status'&&req.method==='GET'){
       const u=requireUser(req,res);if(!u)return;
       const number=clean(url.searchParams.get('number'),12).replace(/[^A-Za-z0-9]/g,'').toUpperCase(),date=clean(url.searchParams.get('date'),10);
@@ -402,5 +402,5 @@ async function api(req,res,url){
 const mime={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.ico':'image/x-icon'};
 function staticFile(req,res,url){let rel=url.pathname==='/'?'index.html':url.pathname.slice(1);rel=path.normalize(rel).replace(/^(\.\.[/\\])+/, '');const base=path.join(__dirname,'public'),f=path.join(base,rel);if(!f.startsWith(base)||!fs.existsSync(f)||fs.statSync(f).isDirectory()){res.writeHead(404);return res.end('Not found');}res.writeHead(200,{'content-type':mime[path.extname(f)]||'application/octet-stream','cache-control':'no-cache, no-store, must-revalidate','pragma':'no-cache','expires':'0','x-content-type-options':'nosniff','referrer-policy':'strict-origin-when-cross-origin','content-security-policy':"default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' https://maps.googleapis.com https://maps.gstatic.com; connect-src 'self' https://api.frankfurter.app https://maps.googleapis.com https://places.googleapis.com; img-src 'self' data: https: blob:; frame-src https://www.google.com; base-uri 'none'; frame-ancestors 'none'"});fs.createReadStream(f).pipe(res);}
 const server=http.createServer((req,res)=>{const url=new URL(req.url,`http://${req.headers.host||'localhost'}`);if(url.pathname.startsWith('/api/'))api(req,res,url);else staticFile(req,res,url);});
-if(require.main===module)server.listen(PORT,HOST,()=>console.log(`Ih, viajei! v59 em http://${HOST}:${PORT}`));
+if(require.main===module)server.listen(PORT,HOST,()=>console.log(`Ih, viajei! v60 em http://${HOST}:${PORT}`));
 module.exports={server,db,hashPassword,verifyPassword,normalizeGooglePlaces,googlePlaceSearch,googleNearbyRestaurants,assistantNearbyUI,distanceMeters,openMeteoForecast};

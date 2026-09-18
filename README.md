@@ -1,4 +1,4 @@
-# Ih, viajei! v59
+# Ih, viajei! v60
 
 **Sua viagem na palma da mão.**
 
@@ -171,7 +171,7 @@ O banco SQLite persistente em `/app/data` não é incluído no ZIP e não deve s
 - Adiciona cadastro persistente de guias pelo administrador.
 
 
-## v59
+## v60
 - Administração de usuários: plano deixa de ser editável diretamente na tabela.
 - Novas ações Visualizar, Editar e Excluir.
 - Editar permite alterar nome, e-mail e plano com validação no servidor.

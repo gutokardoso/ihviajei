@@ -222,3 +222,16 @@ body,body *,button,input,select,textarea,b,strong,h1,h2,h3,h4,h5,h6,label,.prima
 @media(max-width:760px){.adminUserSummary{grid-template-columns:1fr 1fr}.adminTripFacts{grid-template-columns:1fr}.adminUserActions{flex-wrap:wrap}.adminRow{grid-template-columns:2fr 1fr .8fr .5fr .5fr 1.7fr}}
 
 .adminCreate>#adminCreateBtn .submenuArrow{font-size:0!important;width:7px!important;height:7px!important;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg) translateY(-2px)!important;transform-origin:center;flex:0 0 7px!important;margin-top:-3px!important}
+
+/* v60 — hero com vídeo em background */
+.videoHero{position:relative;width:100vw;max-width:none;margin-left:calc(50% - 50vw);min-height:clamp(560px,72vh,760px);display:flex;align-items:center;overflow:hidden;padding:72px max(6vw,24px);isolation:isolate;background:#0b2d4f}
+.heroBackgroundVideo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;z-index:-3;background:#0b2d4f}
+.heroVideoShade{position:absolute;inset:0;z-index:-2;background:linear-gradient(90deg,rgba(4,23,40,.78) 0%,rgba(4,23,40,.60) 46%,rgba(4,23,40,.34) 72%,rgba(4,23,40,.42) 100%)}
+.heroVideoContent{width:min(720px,100%);position:relative;z-index:1}
+.videoHero .pill,.videoHero .eyebrow{color:#fff}
+.videoHero h1,.videoHero p,.videoHero .trustLine{color:#fff!important}
+.videoHero h1{text-shadow:0 2px 22px rgba(0,0,0,.28)}
+.videoHero p{max-width:680px;text-shadow:0 1px 12px rgba(0,0,0,.3)}
+.videoHero .trustLine{opacity:.96}
+@media(max-width:760px){.videoHero{min-height:560px;padding:56px 24px;align-items:flex-end}.heroVideoShade{background:linear-gradient(180deg,rgba(4,23,40,.30) 0%,rgba(4,23,40,.74) 62%,rgba(4,23,40,.88) 100%)}.videoHero h1{font-size:clamp(38px,12vw,54px)}.videoHero p{font-size:17px}.videoHero .trustLine{gap:8px 14px}}
+@media(prefers-reduced-motion:reduce){.heroBackgroundVideo{display:none}.videoHero{background:#0b2d4f}}
