@@ -1,4 +1,4 @@
-# Ih, viajei! v62
+# Ih, viajei! v63
 
 **Sua viagem na palma da mão.**
 
@@ -179,7 +179,7 @@ O banco SQLite persistente em `/app/data` não é incluído no ZIP e não deve s
 - Refinado o alinhamento vertical da seta do submenu Cadastrar.
 
 
-## v62
+## v63
 - Endpoint autenticado `POST /api/email/reservas` para receber e-mails do Cloudflare Email Worker.
 - Validação do segredo `IHVIAJEI_RESERVAS_SECRET` com comparação segura.
 - Armazenamento persistente do e-mail recebido e associação ao usuário quando o remetente corresponde ao e-mail cadastrado.
