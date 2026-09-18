@@ -1,4 +1,4 @@
-# Ih, viajei! v58
+# Ih, viajei! v59
 
 **Sua viagem na palma da mão.**
 
@@ -169,3 +169,11 @@ O banco SQLite persistente em `/app/data` não é incluído no ZIP e não deve s
 - Adiciona Guias de viagem ao menu público, busca e grade de até 12 guias.
 - Adiciona página detalhada de guia com capa, publicação, introdução, seções expansíveis e cards.
 - Adiciona cadastro persistente de guias pelo administrador.
+
+
+## v59
+- Administração de usuários: plano deixa de ser editável diretamente na tabela.
+- Novas ações Visualizar, Editar e Excluir.
+- Editar permite alterar nome, e-mail e plano com validação no servidor.
+- Visualizar reúne viagens e dados cadastrados do viajante em modo somente leitura.
+- Refinado o alinhamento vertical da seta do submenu Cadastrar.
