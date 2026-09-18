@@ -1,4 +1,4 @@
-# Ih, viajei! v64
+# Ih, viajei! v65
 
 **Sua viagem na palma da mão.**
 
@@ -185,7 +185,7 @@ O banco SQLite persistente em `/app/data` não é incluído no ZIP e não deve s
 - Armazenamento persistente do e-mail recebido e associação ao usuário quando o remetente corresponde ao e-mail cadastrado.
 
 
-## v64
+## v65
 - Cada viagem recebe um endereço exclusivo de importação de reservas (`res-...@ihviajei.com.br`).
 - O backend identifica a viagem pelo destinatário, sem depender do e-mail do remetente.
 - A área Reservas mostra o endereço exclusivo e um botão para copiá-lo.
