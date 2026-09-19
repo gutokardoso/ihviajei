@@ -1,4 +1,4 @@
-# Ih, viajei! — v88
+# Ih, viajei! — v89
 
 **Sua viagem na palma da mão.**
 
@@ -285,3 +285,10 @@ O banco SQLite persistente em `/app/data` não é incluído no ZIP e não deve s
 ## v88 — correção do destinatário do suporte no Brevo
 - O destinatário do formulário Contato e suporte agora inclui `name`, exigido pela API do Brevo.
 - Mantidos remetente de suporte, Reply-To do usuário e modal independente de resultado.
+
+
+## v89 — aviso de segurança após alteração de senha
+- Envio automático pelo Brevo de **“Sua senha foi alterada no Ih, viajei!”** após uma troca de senha concluída com sucesso.
+- O aviso é enviado tanto na alteração feita dentro da conta quanto após o fluxo **Esqueci minha senha**.
+- O e-mail informa data e horário da alteração, nunca exibe a senha e orienta a redefinição imediata caso o usuário não reconheça a mudança.
+- Uma eventual indisponibilidade do provedor de e-mail é registrada no servidor, mas não desfaz uma alteração de senha que já foi concluída com segurança.
