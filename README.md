@@ -299,3 +299,10 @@ O banco SQLite persistente em `/app/data` não é incluído no ZIP e não deve s
 - A troca de e-mail só é efetivada após confirmação por link enviado ao novo endereço, com validade de 30 minutos e uso único.
 - Após a confirmação, o endereço antigo recebe um aviso de segurança sobre a alteração.
 - Mensagens de sucesso e erro usam o modal padrão da plataforma.
+
+
+## v91 — edição da conta em modal separado
+- O modal **Minha conta** voltou ao formato de consulta, sem campos editáveis expostos diretamente.
+- Adicionado botão **Editar** ao lado do título **Minha conta**, seguindo o padrão visual dos botões de edição já existentes.
+- O botão abre um modal separado com nome, telefone, e-mail e senha atual para confirmar alterações.
+- O fluxo seguro de confirmação do novo e-mail e o aviso ao endereço antigo continuam preservados.
