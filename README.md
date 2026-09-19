@@ -1,4 +1,4 @@
-# Ih, viajei! — v86
+# Ih, viajei! — v87
 
 **Sua viagem na palma da mão.**
 
@@ -280,3 +280,8 @@ O banco SQLite persistente em `/app/data` não é incluído no ZIP e não deve s
 - Resultado do envio de contato agora aparece em modal separado, nunca dentro do formulário.
 - Envio pelo Brevo usa remetente de suporte separado do destinatário de contato, evitando envio do mesmo endereço para ele próprio.
 - Reply-To continua apontando para o e-mail informado pelo usuário.
+
+
+## v87 — correção do destinatário do suporte no Brevo
+- O destinatário do formulário Contato e suporte agora inclui `name`, exigido pela API do Brevo.
+- Mantidos remetente de suporte, Reply-To do usuário e modal independente de resultado.

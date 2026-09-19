@@ -191,7 +191,7 @@ async function sendSupportEmail(data){
   const subject=`Ih, viajei! · Suporte · ${data.subject}`;
   const body=`Nova solicitação pelo site Ih, viajei!\n\nNome: ${data.name}\nTelefone: ${data.phone}\nE-mail: ${data.email}\nAssunto: ${data.subject}\n\nMensagem:\n${data.message}`;
   if(resend){const r=await fetch('https://api.resend.com/emails',{method:'POST',headers:{authorization:`Bearer ${resend}`,'content-type':'application/json'},body:JSON.stringify({from,to:[to],reply_to:data.email,subject,text:body}),signal:AbortSignal.timeout(12000)});if(!r.ok)throw new Error(`Resend HTTP ${r.status}`);return;}
-  await sendBrevoEmail({toEmail:to,subject,textContent:body,replyTo:{email:data.email,name:data.name},sender:supportSender});
+  await sendBrevoEmail({toEmail:to,toName:'Ih, viajei!',subject,textContent:body,replyTo:{email:data.email,name:data.name},sender:supportSender});
 }
 async function checkCurrencyAlerts(){
   if(alertMonitorRunning)return {ok:false,skipped:'running'}; alertMonitorRunning=true;
@@ -395,7 +395,7 @@ async function api(req,res,url){
   const p=url.pathname;
   try{
     let m;
-    if(p==='/api/health') return json(res,200,{ok:true,version:'v86'});
+    if(p==='/api/health') return json(res,200,{ok:true,version:'v87'});
     if(p==='/api/email/reservas'&&req.method==='POST'){
       if(!rateLimit(req,res,'reservation-email',240,60*60*1000))return;
       const expected=String(process.env.IHVIAJEI_RESERVAS_SECRET||'');
