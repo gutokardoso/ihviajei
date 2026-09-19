@@ -244,3 +244,9 @@ O banco SQLite persistente em `/app/data` não é incluído no ZIP e não deve s
 ## v77 — Meu perfil
 - O botão **Meu perfil** foi adicionado ao menu privado entre **Minhas viagens** e **Sair**.
 - **Excluir conta** passou a ser submenu de **Meu perfil** e mantém a confirmação segura e exclusão definitiva implementadas na v76.
+
+
+## v79 — Meu perfil: plano e senha
+- Adicionados **Alterar plano**, **Alterar senha** e mantido **Excluir conta** no submenu **Meu perfil**.
+- Alterar plano consulta os planos reais do backend e encaminha planos pagos ao checkout configurado.
+- Alterar senha exige a senha atual, mínimo de 10 caracteres e confirmação da nova senha.
