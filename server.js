@@ -132,26 +132,60 @@ async function latestFxRate(currency){
   for(const get of sources){try{const x=await get();if(Number.isFinite(x.rate)&&x.rate>0)return x}catch{}}
   throw new Error(`cotação ${currency}/BRL indisponível`);
 }
+
+function brevoSender(){
+  return {name:String(process.env.BREVO_SENDER_NAME||'Ih, viajei!').trim()||'Ih, viajei!',email:normalizeEmail(process.env.BREVO_SENDER_EMAIL||'contato@ihviajei.com.br')};
+}
+async function sendBrevoEmail({toEmail,toName='',subject,textContent,htmlContent,replyTo}){
+  const key=process.env.BREVO_API_KEY;if(!key)throw new Error('Brevo não configurado.');
+  const payload={sender:brevoSender(),to:[{email:normalizeEmail(toEmail),name:String(toName||'').trim()}],subject,textContent};
+  if(htmlContent)payload.htmlContent=htmlContent;if(replyTo)payload.replyTo=replyTo;
+  const r=await fetch('https://api.brevo.com/v3/smtp/email',{method:'POST',headers:{'api-key':key,'content-type':'application/json','accept':'application/json'},body:JSON.stringify(payload),signal:AbortSignal.timeout(12000)});
+  if(!r.ok){const detail=(await r.text()).slice(0,300);throw new Error(`Brevo HTTP ${r.status}${detail?`: ${detail}`:''}`)}
+  return r.json().catch(()=>({}));
+}
+async function sendWelcomeEmail(user){
+  if(!process.env.BREVO_API_KEY)return 'not-configured';
+  const origin=String(process.env.APP_ORIGIN||'https://ihviajei.com.br').replace(/\/$/,'');
+  const subject='Bem-vindo ao Ih, viajei!';
+  const text=`Olá, ${user.name}!
+
+Sua conta no Ih, viajei! foi criada com sucesso.
+
+Dados do cadastro:
+Nome: ${user.name}
+E-mail: ${user.email}
+Plano: Gratuito
+
+Por segurança, sua senha nunca é enviada por e-mail.
+
+Acesse sua conta: ${origin}
+
+Ih, viajei! — Sua viagem na palma da mão.`;
+  const html=`<!doctype html><html><body style="margin:0;background:#fff9f2;font-family:Arial,sans-serif;color:#0b2d4f"><div style="max-width:620px;margin:0 auto;padding:32px 20px"><div style="background:#fff;border:1px solid #e5e7eb;border-radius:18px;padding:32px"><div style="font-size:25px;margin-bottom:24px">Ih, viajei!</div><h1 style="font-size:26px;font-weight:400;margin:0 0 14px">Bem-vindo, ${escapeHtml(user.name)}!</h1><p style="line-height:1.6">Sua conta foi criada com sucesso. Agora você já pode organizar suas viagens em um só lugar.</p><div style="background:#f7f8f9;border-radius:14px;padding:18px;margin:24px 0"><div style="margin-bottom:9px"><strong>Nome:</strong> ${escapeHtml(user.name)}</div><div style="margin-bottom:9px"><strong>E-mail:</strong> ${escapeHtml(user.email)}</div><div><strong>Plano:</strong> Gratuito</div></div><p style="font-size:14px;line-height:1.6;color:#5d6b78">Por segurança, sua senha nunca é enviada por e-mail.</p><p style="margin:28px 0"><a href="${escapeHtml(origin)}" style="display:inline-block;background:#00a4b4;color:#fff;text-decoration:none;padding:13px 22px;border-radius:24px">Acessar minha conta</a></p><p style="font-size:13px;color:#6b7280;margin:28px 0 0">Ih, viajei! — Sua viagem na palma da mão.</p></div></div></body></html>`;
+  await sendBrevoEmail({toEmail:user.email,toName:user.name,subject,textContent:text,htmlContent:html});return 'email:brevo';
+}
+function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
 async function sendAlertEmail(user,alert,rate){
   const subject=`Ih, viajei! · ${alert.currency} atingiu seu alerta`;
   const direction=alert.kind==='below'?'abaixo ou igual a':'acima ou igual a';
   const body=`Olá, ${user.name}.\n\nA cotação de referência de ${alert.currency} está em R$ ${rate.toFixed(4)}, ${direction} R$ ${Number(alert.threshold).toFixed(4)}, conforme o alerta que você criou no Ih, viajei!.\n\nConsulte o VET da instituição antes de realizar uma compra.\n\nIh, viajei! — Sua viagem na palma da mão.`;
   const resend=process.env.RESEND_API_KEY,brevo=process.env.BREVO_API_KEY;
-  const from=process.env.ALERT_FROM_EMAIL||'Ih, viajei! <alertas@ihviajei.com.br>';
+  const from=process.env.ALERT_FROM_EMAIL||`${brevoSender().name} <${brevoSender().email}>`;
   if(resend){const r=await fetch('https://api.resend.com/emails',{method:'POST',headers:{authorization:`Bearer ${resend}`,'content-type':'application/json'},body:JSON.stringify({from,to:[user.email],subject,text:body}),signal:AbortSignal.timeout(12000)});if(!r.ok)throw new Error(`Resend HTTP ${r.status}`);return 'email:resend';}
-  if(brevo){const m=from.match(/^(.*?)\s*<([^>]+)>$/),sender=m?{name:m[1].trim(),email:m[2]}:{name:'Ih, viajei!',email:from};const r=await fetch('https://api.brevo.com/v3/smtp/email',{method:'POST',headers:{'api-key':brevo,'content-type':'application/json'},body:JSON.stringify({sender,to:[{email:user.email,name:user.name}],subject,textContent:body}),signal:AbortSignal.timeout(12000)});if(!r.ok)throw new Error(`Brevo HTTP ${r.status}`);return 'email:brevo';}
+  if(brevo){await sendBrevoEmail({toEmail:user.email,toName:user.name,subject,textContent:body});return 'email:brevo';}
   return 'in_app';
 }
 async function sendSupportEmail(data){
   const resend=process.env.RESEND_API_KEY,brevo=process.env.BREVO_API_KEY;
   if(!resend&&!brevo)throw new Error('Envio de e-mail ainda não configurado.');
   const to=process.env.SUPPORT_TO_EMAIL||'contato@ihviajei.com.br';
-  const from=process.env.SUPPORT_FROM_EMAIL||process.env.ALERT_FROM_EMAIL||'Ih, viajei! <contato@ihviajei.com.br>';
+  const from=process.env.SUPPORT_FROM_EMAIL||process.env.ALERT_FROM_EMAIL||`${brevoSender().name} <${brevoSender().email}>`;
   const subject=`Ih, viajei! · Suporte · ${data.subject}`;
   const body=`Nova solicitação pelo site Ih, viajei!\n\nNome: ${data.name}\nTelefone: ${data.phone}\nE-mail: ${data.email}\nAssunto: ${data.subject}\n\nMensagem:\n${data.message}`;
   if(resend){const r=await fetch('https://api.resend.com/emails',{method:'POST',headers:{authorization:`Bearer ${resend}`,'content-type':'application/json'},body:JSON.stringify({from,to:[to],reply_to:data.email,subject,text:body}),signal:AbortSignal.timeout(12000)});if(!r.ok)throw new Error(`Resend HTTP ${r.status}`);return;}
-  const m=from.match(/^(.*?)\s*<([^>]+)>$/),sender=m?{name:m[1].trim(),email:m[2]}:{name:'Ih, viajei!',email:from};
-  const r=await fetch('https://api.brevo.com/v3/smtp/email',{method:'POST',headers:{'api-key':brevo,'content-type':'application/json'},body:JSON.stringify({sender,to:[{email:to}],replyTo:{email:data.email,name:data.name},subject,textContent:body}),signal:AbortSignal.timeout(12000)});if(!r.ok)throw new Error(`Brevo HTTP ${r.status}`);
+  await sendBrevoEmail({toEmail:to,subject,textContent:body,replyTo:{email:data.email,name:data.name}});
 }
 async function checkCurrencyAlerts(){
   if(alertMonitorRunning)return {ok:false,skipped:'running'}; alertMonitorRunning=true;
@@ -445,7 +479,7 @@ async function api(req,res,url){
       }catch(e){console.error('Google Routes',e);return json(res,503,{error:'Não foi possível consultar o Google Routes agora.'});}
     }
     if(p==='/api/support'&&req.method==='POST'){if(!rateLimit(req,res,'support',5,60*60*1000))return;const b=await body(req),data={name:clean(b.name,100),phone:clean(b.phone,30),email:normalizeEmail(b.email),subject:clean(b.subject,160),message:clean(b.message,4000)};if(data.name.length<2||data.phone.length<6||!validEmail(data.email)||data.subject.length<2||data.message.length<5)return json(res,400,{error:'Preencha nome, telefone, e-mail, assunto e mensagem.'});try{await sendSupportEmail(data);return json(res,200,{ok:true})}catch(e){console.error('[support]',e.message);return json(res,503,{error:'Não foi possível enviar sua mensagem agora. Tente novamente em instantes.'})}}
-    if(p==='/api/auth/register'&&req.method==='POST'){if(!rateLimit(req,res,'register',5,60*60*1000))return;const b=await body(req), name=clean(b.name,80), email=normalizeEmail(b.email), pass=String(b.password||''); if(name.length<2||!validEmail(email)||pass.length<10)return json(res,400,{error:'Informe nome, e-mail válido e senha com pelo menos 10 caracteres.'}); try{const r=db.prepare('INSERT INTO users(name,email,password_hash) VALUES(?,?,?)').run(name,email,hashPassword(pass)); const t=createSession(Number(r.lastInsertRowid)); return json(res,201,{ok:true},{'set-cookie':secureCookie(req,t)});}catch(e){if(String(e).includes('UNIQUE'))return json(res,409,{error:'Este e-mail já está cadastrado.'});throw e;}}
+    if(p==='/api/auth/register'&&req.method==='POST'){if(!rateLimit(req,res,'register',5,60*60*1000))return;const b=await body(req), name=clean(b.name,80), email=normalizeEmail(b.email), pass=String(b.password||''); if(name.length<2||!validEmail(email)||pass.length<10)return json(res,400,{error:'Informe nome, e-mail válido e senha com pelo menos 10 caracteres.'}); try{const r=db.prepare('INSERT INTO users(name,email,password_hash) VALUES(?,?,?)').run(name,email,hashPassword(pass)); const t=createSession(Number(r.lastInsertRowid)); try{await sendWelcomeEmail({name,email})}catch(mailErr){console.warn(`[welcome] E-mail para ${email} falhou:`,mailErr.message)} return json(res,201,{ok:true},{'set-cookie':secureCookie(req,t)});}catch(e){if(String(e).includes('UNIQUE'))return json(res,409,{error:'Este e-mail já está cadastrado.'});throw e;}}
     if(p==='/api/auth/login'&&req.method==='POST'){const b=await body(req), email=normalizeEmail(b.email), pass=String(b.password||'');if(!rateLimit(req,res,`login:${crypto.createHash('sha256').update(email).digest('hex').slice(0,16)}`,8,15*60*1000))return; const u=db.prepare('SELECT * FROM users WHERE email=?').get(email); if(!u||!verifyPassword(pass,u.password_hash))return json(res,401,{error:'E-mail ou senha inválidos.'}); const t=createSession(u.id); return json(res,200,{ok:true},{'set-cookie':secureCookie(req,t)});}
     if(p==='/api/auth/logout'&&req.method==='POST'){const t=cookies(req).session;if(t)db.prepare('DELETE FROM sessions WHERE token_hash=?').run(crypto.createHash('sha256').update(t).digest('hex'));return json(res,200,{ok:true},{'set-cookie':'session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0'});}
     if(p==='/api/me'&&req.method==='GET'){const u=requireUser(req,res);if(!u)return;return json(res,200,{id:u.id,name:u.name,email:u.email,role:u.role,plan:u.plan});}
@@ -557,5 +591,5 @@ async function api(req,res,url){
 const mime={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.ico':'image/x-icon'};
 function staticFile(req,res,url){let rel=url.pathname==='/'?'index.html':url.pathname.slice(1);rel=path.normalize(rel).replace(/^(\.\.[/\\])+/, '');const base=path.join(__dirname,'public'),f=path.join(base,rel);if(!f.startsWith(base)||!fs.existsSync(f)||fs.statSync(f).isDirectory()){res.writeHead(404);return res.end('Not found');}res.writeHead(200,{'content-type':mime[path.extname(f)]||'application/octet-stream','cache-control':'no-cache, no-store, must-revalidate','pragma':'no-cache','expires':'0',...securityHeaders(),'content-security-policy':"default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' https://maps.googleapis.com https://maps.gstatic.com; connect-src 'self' https://api.frankfurter.app https://maps.googleapis.com https://places.googleapis.com; img-src 'self' data: https: blob:; frame-src https://www.google.com; base-uri 'none'; frame-ancestors 'none'"});fs.createReadStream(f).pipe(res);}
 const server=http.createServer((req,res)=>{const url=new URL(req.url,`http://${req.headers.host||'localhost'}`);if(url.pathname.startsWith('/api/'))api(req,res,url);else staticFile(req,res,url);});
-if(require.main===module)server.listen(PORT,HOST,()=>{console.log(`Ih, viajei! v74 em http://${HOST}:${PORT}`);startDatabaseBackups();startCurrencyAlerts();});
+if(require.main===module)server.listen(PORT,HOST,()=>{console.log(`Ih, viajei! v75 em http://${HOST}:${PORT}`);startDatabaseBackups();startCurrencyAlerts();});
 module.exports={server,db,hashPassword,verifyPassword,normalizeGooglePlaces,googlePlaceSearch,googleNearbyRestaurants,assistantNearbyUI,distanceMeters,openMeteoForecast,createDatabaseBackup,pruneDatabaseBackups,alertCondition,latestFxRate,checkCurrencyAlerts};

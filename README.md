@@ -1,4 +1,4 @@
-# Ih, viajei! v74
+# Ih, viajei! v75
 
 **Sua viagem na palma da mão.**
 
@@ -229,3 +229,13 @@ O banco SQLite persistente em `/app/data` não é incluído no ZIP e não deve s
 - CTAs de acesso/cadastro não exibem mais login ou criação de conta quando a sessão já está autenticada.
 - Usuário autenticado recebe a informação de que já está conectado e é direcionado para seu painel/Minhas viagens.
 - Fluxos deslogados continuam abrindo Entrar ou Criar conta normalmente.
+
+
+## v75 — e-mail de boas-vindas via Brevo
+
+- Integração do cadastro de novos usuários com a API transacional do Brevo.
+- Remetente centralizado pelas variáveis `BREVO_SENDER_EMAIL` e `BREVO_SENDER_NAME`.
+- E-mail de boas-vindas envia nome, e-mail e plano cadastrado, com acesso à plataforma.
+- A senha nunca é enviada ou armazenada em texto aberto.
+- Falha temporária do provedor de e-mail não desfaz nem bloqueia a criação da conta.
+- Alertas cambiais e formulário de suporte passam a reutilizar a configuração central do remetente Brevo.
