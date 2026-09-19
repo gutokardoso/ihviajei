@@ -1,4 +1,4 @@
-# Ih, viajei! — v89
+# Ih, viajei! — v90
 
 **Sua viagem na palma da mão.**
 
@@ -292,3 +292,10 @@ O banco SQLite persistente em `/app/data` não é incluído no ZIP e não deve s
 - O aviso é enviado tanto na alteração feita dentro da conta quanto após o fluxo **Esqueci minha senha**.
 - O e-mail informa data e horário da alteração, nunca exibe a senha e orienta a redefinição imediata caso o usuário não reconheça a mudança.
 - Uma eventual indisponibilidade do provedor de e-mail é registrada no servidor, mas não desfaz uma alteração de senha que já foi concluída com segurança.
+
+
+## v90 — Dados da conta e alteração segura de e-mail
+- Minha conta agora permite editar nome, telefone e e-mail, exigindo a senha atual para salvar.
+- A troca de e-mail só é efetivada após confirmação por link enviado ao novo endereço, com validade de 30 minutos e uso único.
+- Após a confirmação, o endereço antigo recebe um aviso de segurança sobre a alteração.
+- Mensagens de sucesso e erro usam o modal padrão da plataforma.
