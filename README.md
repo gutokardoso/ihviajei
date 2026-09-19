@@ -1,4 +1,4 @@
-# Ih, viajei! v75
+# Ih, viajei! — v76 v76
 
 **Sua viagem na palma da mão.**
 
@@ -231,7 +231,7 @@ O banco SQLite persistente em `/app/data` não é incluído no ZIP e não deve s
 - Fluxos deslogados continuam abrindo Entrar ou Criar conta normalmente.
 
 
-## v75 — e-mail de boas-vindas via Brevo
+## v76 — e-mail de boas-vindas via Brevo
 
 - Integração do cadastro de novos usuários com a API transacional do Brevo.
 - Remetente centralizado pelas variáveis `BREVO_SENDER_EMAIL` e `BREVO_SENDER_NAME`.

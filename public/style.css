@@ -255,3 +255,6 @@ button:focus:not(:focus-visible),a:focus:not(:focus-visible){outline:none!import
 .footerLinks{align-items:flex-start;text-align:left}.footerLinks a,.footerSupport{width:auto;text-align:left}.footerSupport{padding:0;border:0;background:transparent;color:var(--teal);font:inherit;cursor:pointer}.footerSupport:hover{color:var(--navy)}
 .supportModal{width:min(620px,calc(100vw - 32px))}.supportModal textarea{resize:vertical;min-height:140px}.supportModal .primary{width:100%;margin-top:8px}.supportModal .msg{min-height:20px}
 button:focus{outline:none}button:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(0,164,180,.22)}
+
+/* v76 — exclusão definitiva da conta */
+.welcomeActions{display:flex;gap:10px;align-items:center}.accountDeleteBtn{border:1px solid #efb5b0;background:#fff;color:#a8322a}.accountDeleteBtn:hover{background:#fff5f4}.deleteAccountModal{max-width:520px}.deleteAccountWarning{margin:14px 0 18px;padding:14px;border-radius:12px;background:#fff0ef;color:#9f2d25;line-height:1.5}.deleteAccountConfirm{width:100%;margin-top:8px;border:1px solid #efb5b0;background:#fff5f4;color:#a8322a}.deleteAccountConfirm:hover{background:#ffe9e7}@media(max-width:640px){.welcomeActions{width:100%;justify-content:space-between;flex-wrap:wrap}}
