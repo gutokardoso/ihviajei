@@ -1,4 +1,4 @@
-# Ih, viajei! — v82
+# Ih, viajei! — v83
 
 **Sua viagem na palma da mão.**
 
@@ -256,3 +256,9 @@ O banco SQLite persistente em `/app/data` não é incluído no ZIP e não deve s
 - O Brevo envia um botão **Confirmar meu cadastro** com token criptograficamente aleatório, armazenado apenas como hash e válido por 24 horas.
 - A conta só é ativada após o clique; então a sessão é criada e o usuário é redirecionado ao painel já autenticado.
 - Login de conta ainda não confirmada é bloqueado. Usuários já existentes permanecem confirmados na migração.
+
+
+## v83 — valores dos alertas de câmbio
+- O campo de valor do alerta aceita decimal no padrão brasileiro, como `6,25`, sem as setas nativas do campo numérico.
+- Valores usuais são exibidos como moeda brasileira (`R$ 10,00`, `R$ 6,25`) e cotações muito pequenas preservam até quatro casas decimais.
+- O e-mail de alerta usa a mesma formatação monetária brasileira.

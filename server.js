@@ -173,7 +173,9 @@ function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;',
 async function sendAlertEmail(user,alert,rate){
   const subject=`Ih, viajei! · ${alert.currency} atingiu seu alerta`;
   const direction=alert.kind==='below'?'abaixo ou igual a':'acima ou igual a';
-  const body=`Olá, ${user.name}.\n\nA cotação de referência de ${alert.currency} está em R$ ${rate.toFixed(4)}, ${direction} R$ ${Number(alert.threshold).toFixed(4)}, conforme o alerta que você criou no Ih, viajei!.\n\nConsulte o VET da instituição antes de realizar uma compra.\n\nIh, viajei! — Sua viagem na palma da mão.`;
+  const rateBRL=new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL',minimumFractionDigits:2,maximumFractionDigits:Math.abs(rate)>0&&Math.abs(rate)<0.01?4:2}).format(rate);
+  const thresholdNumber=Number(alert.threshold);const thresholdBRL=new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL',minimumFractionDigits:2,maximumFractionDigits:Math.abs(thresholdNumber)>0&&Math.abs(thresholdNumber)<0.01?4:2}).format(thresholdNumber);
+  const body=`Olá, ${user.name}.\n\nA cotação de referência de ${alert.currency} está em ${rateBRL}, ${direction} ${thresholdBRL}, conforme o alerta que você criou no Ih, viajei!.\n\nConsulte o VET da instituição antes de realizar uma compra.\n\nIh, viajei! — Sua viagem na palma da mão.`;
   const resend=process.env.RESEND_API_KEY,brevo=process.env.BREVO_API_KEY;
   const from=process.env.ALERT_FROM_EMAIL||`${brevoSender().name} <${brevoSender().email}>`;
   if(resend){const r=await fetch('https://api.resend.com/emails',{method:'POST',headers:{authorization:`Bearer ${resend}`,'content-type':'application/json'},body:JSON.stringify({from,to:[user.email],subject,text:body}),signal:AbortSignal.timeout(12000)});if(!r.ok)throw new Error(`Resend HTTP ${r.status}`);return 'email:resend';}
