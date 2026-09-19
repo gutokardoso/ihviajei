@@ -1,4 +1,4 @@
-# Ih, viajei! — v85
+# Ih, viajei! — v86
 
 **Sua viagem na palma da mão.**
 
@@ -274,3 +274,9 @@ O banco SQLite persistente em `/app/data` não é incluído no ZIP e não deve s
 
 - Os botões Editar e Remover das compras de moeda usam o mesmo padrão visual e hover dos itens de orçamento.
 - O botão Excluir dos alertas de câmbio foi renomeado para Remover e usa o mesmo padrão visual do botão Remover.
+
+
+## v86 — contato e suporte
+- Resultado do envio de contato agora aparece em modal separado, nunca dentro do formulário.
+- Envio pelo Brevo usa remetente de suporte separado do destinatário de contato, evitando envio do mesmo endereço para ele próprio.
+- Reply-To continua apontando para o e-mail informado pelo usuário.

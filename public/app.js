@@ -111,9 +111,11 @@ if($('#adminUserClose'))$('#adminUserClose').onclick=closeAdminUserDialog;if($('
 const footerLogin=$('#footerLogin');if(footerLogin)footerLogin.onclick=()=>{if(authenticatedCta())return;openAuth('login')};
 
 // v74 — contato e suporte
-const supportDialog=$('#supportDialog'),supportForm=$('#supportForm'),footerSupport=$('#footerSupport');
-function openSupport(){if(me){$('#supportName').value=me.name||'';$('#supportEmail').value=me.email||''}$('#supportMsg').textContent='';if(!supportDialog.open)supportDialog.showModal()}
+const supportDialog=$('#supportDialog'),supportForm=$('#supportForm'),footerSupport=$('#footerSupport'),resultDialog=$('#resultDialog');
+function showResultModal(title,message){$('#resultDialogTitle').textContent=title;$('#resultDialogMessage').textContent=message;if(!resultDialog.open)resultDialog.showModal()}
+if($('#resultDialogClose'))$('#resultDialogClose').onclick=()=>resultDialog.close();if($('#resultDialogOk'))$('#resultDialogOk').onclick=()=>resultDialog.close();if(resultDialog)resultDialog.addEventListener('click',e=>{if(e.target===resultDialog)resultDialog.close()});
+function openSupport(){if(me){$('#supportName').value=me.name||'';$('#supportEmail').value=me.email||''}if(!supportDialog.open)supportDialog.showModal()}
 if(footerSupport)footerSupport.onclick=openSupport;
 if($('#supportClose'))$('#supportClose').onclick=()=>supportDialog.close();
 if(supportDialog)supportDialog.addEventListener('click',e=>{if(e.target===supportDialog)supportDialog.close()});
-if(supportForm)supportForm.onsubmit=async e=>{e.preventDefault();const btn=$('#supportSubmit');btn.disabled=true;$('#supportMsg').textContent='Enviando…';try{await api('/api/support',{method:'POST',body:JSON.stringify({name:$('#supportName').value,phone:$('#supportPhone').value,email:$('#supportEmail').value,subject:$('#supportSubject').value,message:$('#supportMessage').value})});$('#supportMsg').textContent='Mensagem enviada com sucesso.';supportForm.reset();if(me){$('#supportName').value=me.name||'';$('#supportEmail').value=me.email||''}}catch(err){$('#supportMsg').textContent=err.message}finally{btn.disabled=false}};
+if(supportForm)supportForm.onsubmit=async e=>{e.preventDefault();const btn=$('#supportSubmit');btn.disabled=true;try{await api('/api/support',{method:'POST',body:JSON.stringify({name:$('#supportName').value,phone:$('#supportPhone').value,email:$('#supportEmail').value,subject:$('#supportSubject').value,message:$('#supportMessage').value})});supportForm.reset();if(me){$('#supportName').value=me.name||'';$('#supportEmail').value=me.email||''}supportDialog.close();showResultModal('Mensagem enviada','Sua mensagem foi enviada com sucesso para a equipe do Ih, viajei!.')}catch(err){supportDialog.close();showResultModal('Não foi possível enviar',err.message)}finally{btn.disabled=false}};

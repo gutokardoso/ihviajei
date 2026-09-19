@@ -138,9 +138,9 @@ async function latestFxRate(currency){
 function brevoSender(){
   return {name:String(process.env.BREVO_SENDER_NAME||'Ih, viajei!').trim()||'Ih, viajei!',email:normalizeEmail(process.env.BREVO_SENDER_EMAIL||'contato@ihviajei.com.br')};
 }
-async function sendBrevoEmail({toEmail,toName='',subject,textContent,htmlContent,replyTo}){
+async function sendBrevoEmail({toEmail,toName='',subject,textContent,htmlContent,replyTo,sender}){
   const key=process.env.BREVO_API_KEY;if(!key)throw new Error('Brevo não configurado.');
-  const payload={sender:brevoSender(),to:[{email:normalizeEmail(toEmail),name:String(toName||'').trim()}],subject,textContent};
+  const payload={sender:sender||brevoSender(),to:[{email:normalizeEmail(toEmail),name:String(toName||'').trim()}],subject,textContent};
   if(htmlContent)payload.htmlContent=htmlContent;if(replyTo)payload.replyTo=replyTo;
   const r=await fetch('https://api.brevo.com/v3/smtp/email',{method:'POST',headers:{'api-key':key,'content-type':'application/json','accept':'application/json'},body:JSON.stringify(payload),signal:AbortSignal.timeout(12000)});
   if(!r.ok){const detail=(await r.text()).slice(0,300);throw new Error(`Brevo HTTP ${r.status}${detail?`: ${detail}`:''}`)}
@@ -186,11 +186,12 @@ async function sendSupportEmail(data){
   const resend=process.env.RESEND_API_KEY,brevo=process.env.BREVO_API_KEY;
   if(!resend&&!brevo)throw new Error('Envio de e-mail ainda não configurado.');
   const to=process.env.SUPPORT_TO_EMAIL||'contato@ihviajei.com.br';
-  const from=process.env.SUPPORT_FROM_EMAIL||process.env.ALERT_FROM_EMAIL||`${brevoSender().name} <${brevoSender().email}>`;
+  const supportSender={name:String(process.env.SUPPORT_SENDER_NAME||'Ih, viajei!').trim()||'Ih, viajei!',email:normalizeEmail(process.env.SUPPORT_SENDER_EMAIL||'suporte@ihviajei.com.br')};
+  const from=process.env.SUPPORT_FROM_EMAIL||`${supportSender.name} <${supportSender.email}>`;
   const subject=`Ih, viajei! · Suporte · ${data.subject}`;
   const body=`Nova solicitação pelo site Ih, viajei!\n\nNome: ${data.name}\nTelefone: ${data.phone}\nE-mail: ${data.email}\nAssunto: ${data.subject}\n\nMensagem:\n${data.message}`;
   if(resend){const r=await fetch('https://api.resend.com/emails',{method:'POST',headers:{authorization:`Bearer ${resend}`,'content-type':'application/json'},body:JSON.stringify({from,to:[to],reply_to:data.email,subject,text:body}),signal:AbortSignal.timeout(12000)});if(!r.ok)throw new Error(`Resend HTTP ${r.status}`);return;}
-  await sendBrevoEmail({toEmail:to,subject,textContent:body,replyTo:{email:data.email,name:data.name}});
+  await sendBrevoEmail({toEmail:to,subject,textContent:body,replyTo:{email:data.email,name:data.name},sender:supportSender});
 }
 async function checkCurrencyAlerts(){
   if(alertMonitorRunning)return {ok:false,skipped:'running'}; alertMonitorRunning=true;
@@ -394,7 +395,7 @@ async function api(req,res,url){
   const p=url.pathname;
   try{
     let m;
-    if(p==='/api/health') return json(res,200,{ok:true,version:'v85'});
+    if(p==='/api/health') return json(res,200,{ok:true,version:'v86'});
     if(p==='/api/email/reservas'&&req.method==='POST'){
       if(!rateLimit(req,res,'reservation-email',240,60*60*1000))return;
       const expected=String(process.env.IHVIAJEI_RESERVAS_SECRET||'');
