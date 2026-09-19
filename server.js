@@ -394,7 +394,7 @@ async function api(req,res,url){
   const p=url.pathname;
   try{
     let m;
-    if(p==='/api/health') return json(res,200,{ok:true,version:'v70'});
+    if(p==='/api/health') return json(res,200,{ok:true,version:'v85'});
     if(p==='/api/email/reservas'&&req.method==='POST'){
       if(!rateLimit(req,res,'reservation-email',240,60*60*1000))return;
       const expected=String(process.env.IHVIAJEI_RESERVAS_SECRET||'');

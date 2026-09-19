@@ -1,4 +1,4 @@
-# Ih, viajei! — v84
+# Ih, viajei! — v85
 
 **Sua viagem na palma da mão.**
 
@@ -268,3 +268,9 @@ O banco SQLite persistente em `/app/data` não é incluído no ZIP e não deve s
 - Compras de moeda agora podem ser editadas em modal completo e removidas.
 - A Carteira da viagem consolida compras por moeda e mostra total acumulado, total investido e preço médio ponderado.
 - O VET é recalculado automaticamente ao editar uma compra.
+
+
+## v85 — padronização dos botões de câmbio
+
+- Os botões Editar e Remover das compras de moeda usam o mesmo padrão visual e hover dos itens de orçamento.
+- O botão Excluir dos alertas de câmbio foi renomeado para Remover e usa o mesmo padrão visual do botão Remover.
