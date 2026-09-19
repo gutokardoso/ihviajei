@@ -1,4 +1,4 @@
-# Ih, viajei! — v76 v76
+# Ih, viajei! — v77
 
 **Sua viagem na palma da mão.**
 
@@ -239,3 +239,8 @@ O banco SQLite persistente em `/app/data` não é incluído no ZIP e não deve s
 - A senha nunca é enviada ou armazenada em texto aberto.
 - Falha temporária do provedor de e-mail não desfaz nem bloqueia a criação da conta.
 - Alertas cambiais e formulário de suporte passam a reutilizar a configuração central do remetente Brevo.
+
+
+## v77 — Meu perfil
+- O botão **Meu perfil** foi adicionado ao menu privado entre **Minhas viagens** e **Sair**.
+- **Excluir conta** passou a ser submenu de **Meu perfil** e mantém a confirmação segura e exclusão definitiva implementadas na v76.
