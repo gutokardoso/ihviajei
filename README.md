@@ -1,4 +1,4 @@
-# Ih, viajei! — v77
+# Ih, viajei! — v81
 
 **Sua viagem na palma da mão.**
 
@@ -250,3 +250,9 @@ O banco SQLite persistente em `/app/data` não é incluído no ZIP e não deve s
 - Adicionados **Alterar plano**, **Alterar senha** e mantido **Excluir conta** no submenu **Meu perfil**.
 - Alterar plano consulta os planos reais do backend e encaminha planos pagos ao checkout configurado.
 - Alterar senha exige a senha atual, mínimo de 10 caracteres e confirmação da nova senha.
+
+## v81 — confirmação de e-mail
+- Novos cadastros não entram automaticamente no painel.
+- O Brevo envia um botão **Confirmar meu cadastro** com token criptograficamente aleatório, armazenado apenas como hash e válido por 24 horas.
+- A conta só é ativada após o clique; então a sessão é criada e o usuário é redirecionado ao painel já autenticado.
+- Login de conta ainda não confirmada é bloqueado. Usuários já existentes permanecem confirmados na migração.
