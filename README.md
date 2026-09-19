@@ -1,4 +1,4 @@
-# Ih, viajei! — v83
+# Ih, viajei! — v84
 
 **Sua viagem na palma da mão.**
 
@@ -258,7 +258,13 @@ O banco SQLite persistente em `/app/data` não é incluído no ZIP e não deve s
 - Login de conta ainda não confirmada é bloqueado. Usuários já existentes permanecem confirmados na migração.
 
 
-## v83 — valores dos alertas de câmbio
+## v84 — valores dos alertas de câmbio
 - O campo de valor do alerta aceita decimal no padrão brasileiro, como `6,25`, sem as setas nativas do campo numérico.
 - Valores usuais são exibidos como moeda brasileira (`R$ 10,00`, `R$ 6,25`) e cotações muito pequenas preservam até quatro casas decimais.
 - O e-mail de alerta usa a mesma formatação monetária brasileira.
+
+
+## v84
+- Compras de moeda agora podem ser editadas em modal completo e removidas.
+- A Carteira da viagem consolida compras por moeda e mostra total acumulado, total investido e preço médio ponderado.
+- O VET é recalculado automaticamente ao editar uma compra.
