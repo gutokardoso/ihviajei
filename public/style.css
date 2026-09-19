@@ -272,3 +272,5 @@ button:focus{outline:none}button:focus-visible{outline:none;box-shadow:0 0 0 3px
 
 /* v85 — padronização das ações de câmbio com os itens de orçamento */
 .alertRemoveBtn{width:86px;min-width:86px;height:34px;padding:6px 10px;border-radius:10px;flex:0 0 86px}
+
+.authTextLink{display:block;margin:-2px 0 14px auto;padding:0;border:0;background:transparent;color:#00a4b4;font:inherit;cursor:pointer;text-align:right}.authTextLink:hover{text-decoration:underline}

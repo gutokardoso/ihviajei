@@ -1,4 +1,4 @@
-# Ih, viajei! — v87
+# Ih, viajei! — v88
 
 **Sua viagem na palma da mão.**
 
@@ -282,6 +282,6 @@ O banco SQLite persistente em `/app/data` não é incluído no ZIP e não deve s
 - Reply-To continua apontando para o e-mail informado pelo usuário.
 
 
-## v87 — correção do destinatário do suporte no Brevo
+## v88 — correção do destinatário do suporte no Brevo
 - O destinatário do formulário Contato e suporte agora inclui `name`, exigido pela API do Brevo.
 - Mantidos remetente de suporte, Reply-To do usuário e modal independente de resultado.
