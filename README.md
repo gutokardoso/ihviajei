@@ -1,9 +1,16 @@
-# Ih, viajei! — v101
+# Ih, viajei! — v102
 
 **Sua viagem na palma da mão.**
 
 Versão de consolidação construída sobre o v16 anexado, preservando as decisões já aprovadas e corrigindo regressões identificadas na auditoria.
 
+
+## v102 — meta cambial individual por participante
+
+- Cada participante de viagem compartilhada possui sua própria meta cambial.
+- A meta do proprietário não é herdada pelos convidados.
+- Convidados podem definir ou alterar a própria meta sem afetar os demais viajantes.
+- O progresso usa apenas as compras e a meta do usuário conectado.
 
 ## v101 — permissões reais de colaboração
 
