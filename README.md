@@ -1,10 +1,10 @@
-# Ih, viajei! — v93
+# Ih, viajei! — v94
 
 **Sua viagem na palma da mão.**
 
 Versão de consolidação construída sobre o v16 anexado, preservando as decisões já aprovadas e corrigindo regressões identificadas na auditoria.
 
-## v93 — convite de colaboração
+## v94 — convite de colaboração
 - ao abrir um convite, a plataforma verifica se o e-mail convidado já possui conta;
 - sem conta, orienta a criar cadastro e mantém o e-mail do convite preenchido no fluxo;
 - com conta existente, direciona para entrar na plataforma;
