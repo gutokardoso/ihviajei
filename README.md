@@ -1,8 +1,14 @@
-# Ih, viajei! — v94
+# Ih, viajei! — v95
 
 **Sua viagem na palma da mão.**
 
 Versão de consolidação construída sobre o v16 anexado, preservando as decisões já aprovadas e corrigindo regressões identificadas na auditoria.
+
+## v95 — gerenciamento de convites
+- convites pendentes agora exibem **Reenviar** e **Cancelar**;
+- cancelar invalida imediatamente o link antigo e remove o convite da lista;
+- reenviar gera um novo link com validade renovada e invalida o link anterior;
+- somente o titular da viagem pode executar essas ações.
 
 ## v94 — convite de colaboração
 - ao abrir um convite, a plataforma verifica se o e-mail convidado já possui conta;
