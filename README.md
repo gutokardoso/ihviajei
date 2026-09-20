@@ -1,11 +1,11 @@
-# Ih, viajei! — v100
+# Ih, viajei! — v101
 
 **Sua viagem na palma da mão.**
 
 Versão de consolidação construída sobre o v16 anexado, preservando as decisões já aprovadas e corrigindo regressões identificadas na auditoria.
 
 
-## v100 — permissões reais de colaboração
+## v101 — permissões reais de colaboração
 
 - Participantes com **Somente visualizar** agora recebem interface realmente somente leitura: formulários e ações de editar/remover ficam indisponíveis.
 - A interface informa claramente que o titular precisa mudar a permissão para **Pode editar** para liberar alterações.

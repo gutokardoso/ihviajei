@@ -280,3 +280,8 @@ button:focus{outline:none}button:focus-visible{outline:none;box-shadow:0 0 0 3px
 /* v100 — permissões de colaboração */
 .tripReadOnlyNotice{display:flex;gap:8px 14px;align-items:baseline;flex-wrap:wrap;margin:0 0 22px;padding:14px 16px;border:1px solid #cfe9ec;border-radius:14px;background:#f6fbfc;color:#0B2D4F}
 .tripReadOnlyNotice b{font-weight:500;color:#00A4B4}.tripReadOnlyNotice span{color:#667085;font-size:14px}.permissionHidden{display:none!important}
+/* v101 — áreas pessoais e bloqueio visual de importação automática */
+.reservationImportLocked{background:#f3f4f6!important;border-color:#d9dde3!important;color:#7b8493!important;box-shadow:none!important}
+.reservationImportLocked .eyebrow,.reservationImportLocked p,.reservationImportLocked small{color:#8b93a1!important}
+.reservationImportLocked input{background:#e5e7eb!important;border-color:#d1d5db!important;color:#8b93a1!important;cursor:not-allowed}
+.reservationImportLocked button{background:#d1d5db!important;border-color:#d1d5db!important;color:#8b93a1!important;cursor:not-allowed;box-shadow:none!important}
