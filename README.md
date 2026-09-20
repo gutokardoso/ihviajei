@@ -1,8 +1,16 @@
-# Ih, viajei! — v90
+# Ih, viajei! — v93
 
 **Sua viagem na palma da mão.**
 
 Versão de consolidação construída sobre o v16 anexado, preservando as decisões já aprovadas e corrigindo regressões identificadas na auditoria.
+
+## v93 — convite de colaboração
+- ao abrir um convite, a plataforma verifica se o e-mail convidado já possui conta;
+- sem conta, orienta a criar cadastro e mantém o e-mail do convite preenchido no fluxo;
+- com conta existente, direciona para entrar na plataforma;
+- após autenticação — ou após confirmar o e-mail de uma conta recém-criada — o convite pendente é aceito e a viagem compartilhada é aberta automaticamente;
+- usuário já autenticado com o e-mail convidado aceita o convite diretamente;
+- convites inválidos ou expirados continuam bloqueados.
 
 ## Mantido e consolidado
 - navegação autenticada em faixa separada abaixo do header;
