@@ -276,3 +276,7 @@ button:focus{outline:none}button:focus-visible{outline:none;box-shadow:0 0 0 3px
 .authTextLink{display:block;margin:-2px 0 14px auto;padding:0;border:0;background:transparent;color:#00a4b4;font:inherit;cursor:pointer;text-align:right}.authTextLink:hover{text-decoration:underline}
 
 .myAccountTitleRow{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-right:46px}.myAccountTitleRow h2{margin:0}.myAccountEditBtn{width:86px;min-width:86px;height:34px;padding:7px 10px;border-radius:9px;font-size:13px;cursor:pointer}
+
+/* v100 — permissões de colaboração */
+.tripReadOnlyNotice{display:flex;gap:8px 14px;align-items:baseline;flex-wrap:wrap;margin:0 0 22px;padding:14px 16px;border:1px solid #cfe9ec;border-radius:14px;background:#f6fbfc;color:#0B2D4F}
+.tripReadOnlyNotice b{font-weight:500;color:#00A4B4}.tripReadOnlyNotice span{color:#667085;font-size:14px}.permissionHidden{display:none!important}
