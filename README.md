@@ -1,10 +1,17 @@
-# Ih, viajei! — v97
+# Ih, viajei! — v99
 
 **Sua viagem na palma da mão.**
 
 Versão de consolidação construída sobre o v16 anexado, preservando as decisões já aprovadas e corrigindo regressões identificadas na auditoria.
 
-## v97 — gerenciamento de convites
+
+## v99 — participantes por e-mail e limpeza do cadastro antigo
+- remove permanentemente o participante legado **Lincon** dos dados persistidos da viagem, inclusive referências antigas de divisão de despesas;
+- restaura a deduplicação de participantes usando o **e-mail** como identificador principal;
+- um colaborador aceito com o mesmo e-mail de um cadastro manual aparece apenas uma vez em Participantes;
+- a limpeza é idempotente e também é aplicada ao banco SQLite persistente no deploy.
+
+## v98 — gerenciamento de convites
 - convites pendentes agora exibem **Reenviar** e **Cancelar**;
 - cancelar invalida imediatamente o link antigo e remove o convite da lista;
 - reenviar gera um novo link com validade renovada e invalida o link anterior;

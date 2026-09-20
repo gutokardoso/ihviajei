@@ -74,6 +74,41 @@ db.exec('CREATE INDEX IF NOT EXISTS idx_alert_events_user ON alert_events(user_i
 try{db.exec("ALTER TABLE reservations ADD COLUMN source_budget_id INTEGER")}catch(e){if(!String(e.message).includes('duplicate column'))throw e}
 db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_reservations_source_budget ON reservations(user_id,source_budget_id) WHERE source_budget_id IS NOT NULL;');
 db.exec(`CREATE TABLE IF NOT EXISTS trip_tools(id INTEGER PRIMARY KEY,user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,trip_id INTEGER NOT NULL REFERENCES trips(id) ON DELETE CASCADE,type TEXT NOT NULL,data TEXT NOT NULL DEFAULT '{}',created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP); CREATE INDEX IF NOT EXISTS idx_trip_tools ON trip_tools(trip_id,type);`);
+// v99: remove the obsolete participant "Lincon" from persisted trip data and related split references.
+// This migration is intentionally idempotent so Railway's persistent SQLite volume is cleaned on deploy.
+(function cleanupObsoleteLinconParticipant(){
+  const obsolete='lincon';
+  const sameName=v=>String(v||'').trim().toLocaleLowerCase('pt-BR')===obsolete;
+  db.exec('BEGIN');
+  try{
+    for(const trip of db.prepare('SELECT id,companions FROM trips').all()){
+      let names=[];try{names=JSON.parse(trip.companions||'[]')}catch{}
+      if(Array.isArray(names)){
+        const next=names.filter(n=>!sameName(n));
+        if(next.length!==names.length)db.prepare('UPDATE trips SET companions=? WHERE id=?').run(JSON.stringify(next),trip.id);
+      }
+    }
+    for(const row of db.prepare("SELECT id,data FROM trip_tools WHERE type='collaborator'").all()){
+      try{const d=JSON.parse(row.data||'{}');if(sameName(d.name))db.prepare('DELETE FROM trip_tools WHERE id=?').run(row.id)}catch{}
+    }
+    for(const row of db.prepare('SELECT id,split_names FROM budget_items').all()){
+      let names=[];try{names=JSON.parse(row.split_names||'[]')}catch{}
+      if(Array.isArray(names)){
+        const next=names.filter(n=>!sameName(n));
+        if(next.length!==names.length)db.prepare('UPDATE budget_items SET split_names=? WHERE id=?').run(JSON.stringify(next),row.id);
+      }
+    }
+    for(const row of db.prepare("SELECT id,data FROM trip_tools WHERE type='expense'").all()){
+      try{
+        const d=JSON.parse(row.data||'{}');
+        let names=Array.isArray(d.splitNames)?d.splitNames:String(d.split||'').split(',').map(x=>x.trim()).filter(Boolean);
+        const next=names.filter(n=>!sameName(n));
+        if(next.length!==names.length){d.splitNames=next;d.split=next.join(', ');db.prepare('UPDATE trip_tools SET data=? WHERE id=?').run(JSON.stringify(d),row.id)}
+      }catch{}
+    }
+    db.exec('COMMIT');
+  }catch(err){try{db.exec('ROLLBACK')}catch{}throw err}
+})();
 db.exec(`CREATE TABLE IF NOT EXISTS assistant_messages(id INTEGER PRIMARY KEY,user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,trip_id INTEGER NOT NULL REFERENCES trips(id) ON DELETE CASCADE,role TEXT NOT NULL CHECK(role IN ('user','assistant')),content TEXT NOT NULL DEFAULT '',ui TEXT NOT NULL DEFAULT '',created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP); CREATE INDEX IF NOT EXISTS idx_assistant_messages_trip ON assistant_messages(trip_id,id);`);
 db.exec(`CREATE TABLE IF NOT EXISTS inbound_reservation_emails(id INTEGER PRIMARY KEY,user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,sender TEXT NOT NULL,recipient TEXT NOT NULL DEFAULT '',raw_email TEXT NOT NULL,processing_status TEXT NOT NULL DEFAULT 'received',created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP); CREATE INDEX IF NOT EXISTS idx_inbound_reservation_user ON inbound_reservation_emails(user_id,created_at);`);
 for(const sql of ["ALTER TABLE inbound_reservation_emails ADD COLUMN trip_id INTEGER REFERENCES trips(id) ON DELETE SET NULL","ALTER TABLE inbound_reservation_emails ADD COLUMN reservation_id INTEGER REFERENCES reservations(id) ON DELETE SET NULL","ALTER TABLE inbound_reservation_emails ADD COLUMN subject TEXT NOT NULL DEFAULT ''","ALTER TABLE inbound_reservation_emails ADD COLUMN parsed_json TEXT NOT NULL DEFAULT '{}'","ALTER TABLE inbound_reservation_emails ADD COLUMN error_message TEXT NOT NULL DEFAULT ''"]){try{db.exec(sql)}catch(e){if(!String(e.message).includes('duplicate column'))throw e}}
