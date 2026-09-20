@@ -301,7 +301,7 @@ O banco SQLite persistente em `/app/data` não é incluído no ZIP e não deve s
 - Mensagens de sucesso e erro usam o modal padrão da plataforma.
 
 
-## v91 — edição da conta em modal separado
+## v92 — edição da conta em modal separado
 - O modal **Minha conta** voltou ao formato de consulta, sem campos editáveis expostos diretamente.
 - Adicionado botão **Editar** ao lado do título **Minha conta**, seguindo o padrão visual dos botões de edição já existentes.
 - O botão abre um modal separado com nome, telefone, e-mail e senha atual para confirmar alterações.
