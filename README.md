@@ -1,10 +1,10 @@
-# Ih, viajei! — v96
+# Ih, viajei! — v97
 
 **Sua viagem na palma da mão.**
 
 Versão de consolidação construída sobre o v16 anexado, preservando as decisões já aprovadas e corrigindo regressões identificadas na auditoria.
 
-## v96 — gerenciamento de convites
+## v97 — gerenciamento de convites
 - convites pendentes agora exibem **Reenviar** e **Cancelar**;
 - cancelar invalida imediatamente o link antigo e remove o convite da lista;
 - reenviar gera um novo link com validade renovada e invalida o link anterior;
