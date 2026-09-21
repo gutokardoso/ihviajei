@@ -3,6 +3,9 @@ const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
+const { execFile } = require('node:child_process');
+const { promisify } = require('node:util');
+const execFileAsync = promisify(execFile);
 const { DatabaseSync } = require('node:sqlite');
 
 function loadEnv(){
@@ -20,7 +23,7 @@ const SESSION_DAYS=Math.max(1, Math.min(30, Number(process.env.SESSION_DAYS||14)
 const IS_PRODUCTION=String(process.env.NODE_ENV||'').toLowerCase()==='production'||String(process.env.APP_ORIGIN||'').startsWith('https://');
 const RATE_WINDOWS=new Map();
 // Production observability: structured, privacy-safe metrics for external dependencies.
-const OBS={startedAt:Date.now(),external:new Map(),api:{count:0,errors:0,totalMs:0,maxMs:0}};
+const OBS={startedAt:Date.now(),external:new Map(),api:{count:0,errors:0,totalMs:0,maxMs:0},backup:{lastAt:null,lastOk:null,lastName:null,lastSize:0,lastError:''}};
 function obsService(input){try{const h=new URL(typeof input==='string'?input:input?.url||String(input)).hostname;if(h==='127.0.0.1'||h==='localhost'||h==='::1')return null;return h.includes('supabase.co')?'Supabase':h.includes('googleapis.com')?'Google':h.includes('aerodatabox')?'AeroDataBox':h.includes('openai.com')?'OpenAI':h.includes('brevo.com')?'Brevo':h.includes('resend.com')?'Resend':h.includes('frankfurter.app')?'Frankfurter':h.includes('awesomeapi.com')?'AwesomeAPI':h.includes('bcb.gov.br')?'BCB':h.includes('open-meteo.com')?'OpenMeteo':h;}catch{}return 'External';}
 function obsRecord(service,ms,ok,status=0,error=''){const old=OBS.external.get(service)||{service,count:0,errors:0,totalMs:0,maxMs:0,lastStatus:0,lastError:'',lastAt:null};old.count++;old.totalMs+=ms;old.maxMs=Math.max(old.maxMs,ms);old.lastStatus=Number(status)||0;old.lastAt=new Date().toISOString();if(!ok){old.errors++;old.lastError=clean(String(error||`HTTP ${status}`),160).replace(/[A-Za-z0-9_-]{24,}/g,'[redacted]')}OBS.external.set(service,old);console.log(JSON.stringify({level:ok?'info':'error',event:'external_request',service,duration_ms:ms,status:old.lastStatus,ok,at:old.lastAt}));}
 const nativeFetch=global.fetch;
@@ -170,7 +173,7 @@ async function pruneDatabaseBackups(base,key,bucket){
   try{
     const rr=await fetch(`${base}/storage/v1/object/list/${encodeURIComponent(bucket)}`,{method:'POST',headers:supabaseHeaders(key,{'content-type':'application/json'}),body:JSON.stringify({prefix:'',limit:100,offset:0,sortBy:{column:'name',order:'desc'}}),signal:AbortSignal.timeout(20000)});
     if(!rr.ok)throw new Error(`listagem HTTP ${rr.status}`);
-    const files=(await rr.json()).filter(x=>x&&x.name&&String(x.name).endsWith('.sqlite')).sort((a,b)=>String(b.name).localeCompare(String(a.name)));
+    const files=(await rr.json()).filter(x=>x&&x.name&&/\.(sqlite|dump)$/.test(String(x.name))).sort((a,b)=>String(b.name).localeCompare(String(a.name)));
     const old=files.slice(BACKUP_RETENTION).map(x=>x.name);
     if(old.length){
       const del=await fetch(`${base}/storage/v1/object/${encodeURIComponent(bucket)}`,{method:'DELETE',headers:supabaseHeaders(key,{'content-type':'application/json'}),body:JSON.stringify({prefixes:old}),signal:AbortSignal.timeout(20000)});
@@ -321,23 +324,27 @@ function startCurrencyAlerts(){
 }
 
 async function createDatabaseBackup(){
-  if(USING_POSTGRES)return {ok:false,skipped:'postgres-managed-backup'};
   if(backupRunning)return {ok:false,skipped:'running'};
   const base=String(process.env.SUPABASE_URL||'').replace(/\/$/,''),key=supabaseSecret(),bucket=BACKUP_BUCKET;
   if(!base||!key||!bucket)return {ok:false,skipped:'not-configured'};
   backupRunning=true;
-  const dir=path.dirname(DB_PATH),stamp=new Date().toISOString().replace(/[:.]/g,'-'),tmp=path.join(dir,`.ihviajei-backup-${process.pid}-${Date.now()}.sqlite`),name=`ihviajei-${stamp}.sqlite`;
+  const stamp=new Date().toISOString().replace(/[:.]/g,'-');
+  const dir=USING_POSTGRES?'/tmp':path.dirname(DB_PATH);
+  const ext=USING_POSTGRES?'dump':'sqlite',tmp=path.join(dir,`.ihviajei-backup-${process.pid}-${Date.now()}.${ext}`),name=`ihviajei-${stamp}.${ext}`;
   try{
-    // VACUUM INTO cria um snapshot SQLite consistente mesmo com o banco em WAL.
-    db.exec(`VACUUM INTO ${sqlString(tmp)}`);
+    if(USING_POSTGRES){
+      await execFileAsync('pg_dump',['--format=custom','--no-owner','--no-privileges','--file',tmp,process.env.DATABASE_URL],{timeout:120000,maxBuffer:1024*1024});
+    }else db.exec(`VACUUM INTO ${sqlString(tmp)}`);
     const bytes=fs.readFileSync(tmp);
     if(!bytes.length)throw new Error('snapshot vazio');
-    const rr=await fetch(`${base}/storage/v1/object/${encodeURIComponent(bucket)}/${encodeURIComponent(name)}`,{method:'POST',headers:supabaseHeaders(key,{'content-type':'application/vnd.sqlite3','x-upsert':'false'}),body:bytes,signal:AbortSignal.timeout(60000)});
+    const type=USING_POSTGRES?'application/octet-stream':'application/vnd.sqlite3';
+    const rr=await fetch(`${base}/storage/v1/object/${encodeURIComponent(bucket)}/${encodeURIComponent(name)}`,{method:'POST',headers:supabaseHeaders(key,{'content-type':type,'x-upsert':'false'}),body:bytes,signal:AbortSignal.timeout(120000)});
     if(!rr.ok)throw new Error(`upload HTTP ${rr.status}: ${(await rr.text()).slice(0,200)}`);
     await pruneDatabaseBackups(base,key,bucket);
-    console.log(`[backup] SQLite enviado com sucesso: ${name} (${bytes.length} bytes)`);
-    return {ok:true,name,size:bytes.length};
-  }catch(err){console.error('[backup] Falha no backup automático:',err.message);return {ok:false,error:err.message};}
+    Object.assign(OBS.backup,{lastAt:new Date().toISOString(),lastOk:true,lastName:name,lastSize:bytes.length,lastError:''});
+    console.log(JSON.stringify({level:'info',event:'database_backup',database:USING_POSTGRES?'postgres':'sqlite',ok:true,name,size:bytes.length,at:OBS.backup.lastAt}));
+    return {ok:true,name,size:bytes.length,database:USING_POSTGRES?'postgres':'sqlite'};
+  }catch(err){Object.assign(OBS.backup,{lastAt:new Date().toISOString(),lastOk:false,lastError:String(err.message||err).slice(0,200)});console.error(JSON.stringify({level:'error',event:'database_backup',database:USING_POSTGRES?'postgres':'sqlite',ok:false,error:OBS.backup.lastError,at:OBS.backup.lastAt}));return {ok:false,error:OBS.backup.lastError};}
   finally{backupRunning=false;try{if(fs.existsSync(tmp))fs.unlinkSync(tmp)}catch{}}
 }
 function startDatabaseBackups(){
@@ -505,8 +512,8 @@ async function api(req,res,url){
   if(p.startsWith('/api/admin/')&&!rateLimit(req,res,'api-admin',180,15*60*1000))return;
   try{
     let m;
-    if(p==='/api/health') return json(res,200,{ok:true,version:'v111',database:USING_POSTGRES?'postgres':'sqlite',uptime_seconds:Math.floor((Date.now()-OBS.startedAt)/1000)});
-    if(p==='/api/admin/operations'&&req.method==='GET'){const u=requireUser(req,res);if(!u)return;if(u.role!=='admin')return json(res,403,{error:'Acesso restrito.'});return json(res,200,{ok:true,version:'v111',database:{current:USING_POSTGRES?'postgres':'sqlite',postgres_configured:Boolean(process.env.DATABASE_URL),migration_ready:true},observability:obsSnapshot()});}
+    if(p==='/api/health') return json(res,200,{ok:true,version:'v112',database:USING_POSTGRES?'postgres':'sqlite',uptime_seconds:Math.floor((Date.now()-OBS.startedAt)/1000)});
+    if(p==='/api/admin/operations'&&req.method==='GET'){const u=requireUser(req,res);if(!u)return;if(u.role!=='admin')return json(res,403,{error:'Acesso restrito.'});return json(res,200,{ok:true,version:'v112',database:{current:USING_POSTGRES?'postgres':'sqlite',postgres_configured:Boolean(process.env.DATABASE_URL),migration_ready:true},observability:{...obsSnapshot(),backup:OBS.backup}});}
     if(p==='/api/notifications'&&req.method==='GET'){const u=requireUser(req,res);if(!u)return;const rows=db.prepare('SELECT id,trip_id,type,title,message,target_tab,is_read,created_at FROM notifications WHERE user_id=? ORDER BY id DESC LIMIT 80').all(u.id);const unread=db.prepare('SELECT COUNT(*) n FROM notifications WHERE user_id=? AND is_read=0').get(u.id).n;return json(res,200,{rows,unread});}
     if(p==='/api/notifications/read-all'&&req.method==='POST'){const u=requireUser(req,res);if(!u)return;db.prepare('UPDATE notifications SET is_read=1 WHERE user_id=?').run(u.id);return json(res,200,{ok:true});}
     m=p.match(/^\/api\/notifications\/(\d+)\/read$/);if(m&&req.method==='POST'){const u=requireUser(req,res);if(!u)return;db.prepare('UPDATE notifications SET is_read=1 WHERE id=? AND user_id=?').run(Number(m[1]),u.id);return json(res,200,{ok:true});}
@@ -735,5 +742,5 @@ async function api(req,res,url){
 const mime={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.ico':'image/x-icon'};
 function staticFile(req,res,url){let rel=url.pathname==='/'?'index.html':url.pathname.slice(1);rel=path.normalize(rel).replace(/^(\.\.[/\\])+/, '');const base=path.join(__dirname,'public'),f=path.join(base,rel);if(!f.startsWith(base)||!fs.existsSync(f)||fs.statSync(f).isDirectory()){res.writeHead(404);return res.end('Not found');}res.writeHead(200,{'content-type':mime[path.extname(f)]||'application/octet-stream','cache-control':'no-cache, no-store, must-revalidate','pragma':'no-cache','expires':'0',...securityHeaders(),'content-security-policy':"default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' https://maps.googleapis.com https://maps.gstatic.com; connect-src 'self' https://api.frankfurter.app https://maps.googleapis.com https://places.googleapis.com; img-src 'self' data: https: blob:; frame-src https://www.google.com; base-uri 'none'; frame-ancestors 'none'"});fs.createReadStream(f).pipe(res);}
 const server=http.createServer((req,res)=>{const url=new URL(req.url,`http://${req.headers.host||'localhost'}`);if(url.pathname.startsWith('/api/'))api(req,res,url);else staticFile(req,res,url);});
-if(require.main===module)server.listen(PORT,HOST,()=>{console.log(`Ih, viajei! v111 em http://${HOST}:${PORT}`);startDatabaseBackups();startCurrencyAlerts();});
+if(require.main===module)server.listen(PORT,HOST,()=>{console.log(`Ih, viajei! v112 em http://${HOST}:${PORT}`);startDatabaseBackups();startCurrencyAlerts();});
 module.exports={server,db,hashPassword,verifyPassword,normalizeGooglePlaces,googlePlaceSearch,googleNearbyRestaurants,assistantNearbyUI,distanceMeters,openMeteoForecast,createDatabaseBackup,pruneDatabaseBackups,alertCondition,latestFxRate,checkCurrencyAlerts};

@@ -1,6 +1,7 @@
 FROM node:22-alpine
 WORKDIR /app
 COPY package.json ./
+RUN apk add --no-cache postgresql-client
 RUN npm install --omit=dev --ignore-scripts
 COPY server.js ./
 COPY db-postgres-sync.js ./
