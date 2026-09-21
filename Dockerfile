@@ -2,6 +2,7 @@ FROM node:22-alpine
 WORKDIR /app
 COPY package.json ./
 COPY server.js ./
+COPY scripts ./scripts
 COPY public ./public
 # O volume do Railway é montado em runtime. O processo permanece como root
 # para conseguir inicializar/gravar SQLite em volumes novos independentemente
