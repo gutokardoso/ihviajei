@@ -1,2 +1,18 @@
-/* v114 — próximos passos inteligentes e revisão de reservas */
+/* v115 — próximos passos com identidade visual Ih, viajei! */
 .smartNextSteps{display:flex;flex-direction:column;gap:10px}.smartNextSteps h3{margin-bottom:4px}.nextStepItem{width:100%;display:grid;grid-template-columns:34px 1fr 20px;gap:10px;align-items:center;text-align:left;background:#fff;border:1px solid #e5e9ec;border-radius:12px;padding:12px;cursor:pointer;color:inherit}.nextStepItem:hover{border-color:#0aa8b5}.nextStepItem b,.nextStepItem small{display:block}.nextStepItem small{margin-top:3px;color:#697386;font-weight:400}.nextStepIcon{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:#f3f7f8}.nextStepArrow{color:#0aa8b5;font-size:18px}.reviewReservationItem small{display:block;margin-top:5px;color:#b65b45}.reviewReservationItem .itemActions{display:flex;gap:8px;flex-wrap:wrap}
+\n/* v115 — Próximos passos */
+.smartNextSteps{display:block!important;padding:24px!important;overflow:hidden}
+.nextStepsHeader{display:flex;align-items:flex-start;gap:13px;margin-bottom:20px}
+.nextStepsHeaderIcon{flex:0 0 38px;width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:#e7f8fa;color:#0799a8;font-size:24px;line-height:1}
+.smartNextSteps .nextStepsHeader h3{margin:0 0 3px!important;color:#0b2d4f;font-size:20px;font-weight:500}
+.nextStepsHeader p{margin:0;color:#6b7a8d;font-size:14px;line-height:1.4}
+.nextStepsList{display:flex;flex-direction:column;gap:10px;width:100%}
+.smartNextSteps .nextStepItem{appearance:none;-webkit-appearance:none;box-sizing:border-box;width:100%!important;min-height:76px;display:grid!important;grid-template-columns:48px minmax(0,1fr) 28px!important;gap:14px!important;align-items:center!important;margin:0!important;padding:12px 16px!important;border:1px solid transparent!important;border-radius:15px!important;box-shadow:none!important;text-align:left!important;cursor:pointer;transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease;color:#0b2d4f}
+.smartNextSteps .nextStepItem:hover{transform:translateY(-1px);border-color:rgba(10,168,181,.28)!important;box-shadow:0 6px 18px rgba(11,45,79,.06)!important}
+.nextStepTone0{background:#fff1ed!important}.nextStepTone1{background:#eef7ff!important}.nextStepTone2{background:#fff8ea!important}.nextStepTone3{background:#ecfaf6!important}.nextStepTone4{background:#f5f1ff!important}
+.smartNextSteps .nextStepIcon{width:48px!important;height:48px!important;border-radius:50%!important;display:grid!important;place-items:center!important;background:rgba(255,255,255,.66)!important;font-size:22px!important;line-height:1!important}
+.nextStepContent{display:block;min-width:0}
+.nextStepTitle{display:block;color:#0b2d4f;font-size:15px;font-weight:500;line-height:1.25;margin-bottom:4px}
+.smartNextSteps .nextStepItem small{display:block!important;margin:0!important;color:#64748b!important;font-size:13px!important;font-weight:400!important;line-height:1.35;white-space:normal}
+.smartNextSteps .nextStepArrow{display:grid;place-items:center;color:#0799a8!important;font-size:29px!important;font-weight:300;line-height:1}
+@media(max-width:700px){.smartNextSteps{padding:18px!important}.nextStepsHeader{margin-bottom:15px}.smartNextSteps .nextStepItem{grid-template-columns:42px minmax(0,1fr) 22px!important;gap:11px!important;min-height:68px;padding:11px 12px!important}.smartNextSteps .nextStepIcon{width:42px!important;height:42px!important;font-size:19px!important}.nextStepTitle{font-size:14px}.smartNextSteps .nextStepItem small{font-size:12px}.nextStepsHeaderIcon{flex-basis:34px;width:34px;height:34px;font-size:21px}}
