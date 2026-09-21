@@ -7,11 +7,11 @@ COPY server.js ./
 COPY db-postgres-sync.js ./
 COPY postgres-sync-worker.js ./
 COPY scripts ./scripts
+COPY tests.js places-tests.js ./
 COPY public ./public
-# O volume do Railway é montado em runtime. O processo permanece como root
-# para conseguir inicializar/gravar SQLite em volumes novos independentemente
-# do UID/GID atribuído pelo provedor.
+# SQLite fica disponível apenas para desenvolvimento/testes e como origem de migração.
+# Em produção o servidor exige DATABASE_URL e opera em PostgreSQL.
 RUN mkdir -p /app/data
-ENV PORT=3000 DB_PATH=/app/data/ihviajei.db
+ENV PORT=3000 DB_PATH=/app/data/ihviajei.db NODE_ENV=production
 EXPOSE 3000
 CMD ["node", "server.js"]

@@ -2,7 +2,6 @@
 // One-way, transactional SQLite -> PostgreSQL migration. It never deletes or changes the SQLite source.
 const path = require('node:path');
 const { DatabaseSync } = require('node:sqlite');
-const { Client } = require('pg');
 
 const sqlitePath = path.resolve(process.env.DB_PATH || './data/ihviajei.db');
 const q = x => '"' + String(x).replaceAll('"', '""') + '"';
@@ -31,7 +30,27 @@ function tableDefinition(cols) {
   return { defs, primaryKey };
 }
 
+function printHelp() {
+  console.log(`Uso: npm run migrate:postgres -- [--force]
+
+Copia dados do SQLite (DB_PATH) para PostgreSQL (DATABASE_URL).
+A origem SQLite nunca é alterada. INSERTs usam ON CONFLICT DO NOTHING.
+
+Opções:
+  --help, -h   Exibe esta ajuda e NÃO executa a migração
+  --force      Confirma explicitamente a execução da migração
+`);
+}
+
+const args = new Set(process.argv.slice(2));
+if (args.has('--help') || args.has('-h')) { printHelp(); process.exit(0); }
+if (!args.has('--force')) {
+  console.error('[migrate:postgres] Migração bloqueada por segurança. Use --force após confirmar backup e origem.');
+  process.exit(2);
+}
+
 (async () => {
+  const { Client } = require('pg');
   if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL não configurada.');
   const src = new DatabaseSync(sqlitePath, { readOnly: true });
   const pg = new Client({

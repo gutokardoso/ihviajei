@@ -1,6 +1,6 @@
 {
   "name": "ihviajei",
-  "version": "112.0.0",
+  "version": "113.0.0",
   "private": true,
   "description": "Ih, viajei! — Sua viagem na palma da mão.",
   "scripts": {
@@ -8,7 +8,8 @@
     "test": "node tests.js && node places-tests.js",
     "migrate:postgres": "node scripts/migrate-postgres.js",
     "postgres:check": "node scripts/check-postgres.js",
-    "restore:postgres": "node scripts/restore-postgres.js"
+    "restore:postgres": "node scripts/restore-postgres.js",
+    "backup:postgres": "node scripts/backup-postgres.js"
   },
   "engines": {
     "node": ">=22.5.0"
