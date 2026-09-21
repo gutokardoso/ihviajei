@@ -19,6 +19,14 @@ const DB_PATH=path.resolve(__dirname, process.env.DB_PATH||'./data/ihviajei.db')
 const SESSION_DAYS=Math.max(1, Math.min(30, Number(process.env.SESSION_DAYS||14)));
 const IS_PRODUCTION=String(process.env.NODE_ENV||'').toLowerCase()==='production'||String(process.env.APP_ORIGIN||'').startsWith('https://');
 const RATE_WINDOWS=new Map();
+// Production observability: structured, privacy-safe metrics for external dependencies.
+const OBS={startedAt:Date.now(),external:new Map(),api:{count:0,errors:0,totalMs:0,maxMs:0}};
+function obsService(input){try{const h=new URL(typeof input==='string'?input:input?.url||String(input)).hostname;if(h==='127.0.0.1'||h==='localhost'||h==='::1')return null;return h.includes('supabase.co')?'Supabase':h.includes('googleapis.com')?'Google':h.includes('aerodatabox')?'AeroDataBox':h.includes('openai.com')?'OpenAI':h.includes('brevo.com')?'Brevo':h.includes('resend.com')?'Resend':h.includes('frankfurter.app')?'Frankfurter':h.includes('awesomeapi.com')?'AwesomeAPI':h.includes('bcb.gov.br')?'BCB':h.includes('open-meteo.com')?'OpenMeteo':h;}catch{}return 'External';}
+function obsRecord(service,ms,ok,status=0,error=''){const old=OBS.external.get(service)||{service,count:0,errors:0,totalMs:0,maxMs:0,lastStatus:0,lastError:'',lastAt:null};old.count++;old.totalMs+=ms;old.maxMs=Math.max(old.maxMs,ms);old.lastStatus=Number(status)||0;old.lastAt=new Date().toISOString();if(!ok){old.errors++;old.lastError=clean(String(error||`HTTP ${status}`),160).replace(/[A-Za-z0-9_-]{24,}/g,'[redacted]')}OBS.external.set(service,old);console.log(JSON.stringify({level:ok?'info':'error',event:'external_request',service,duration_ms:ms,status:old.lastStatus,ok,at:old.lastAt}));}
+const nativeFetch=global.fetch;
+global.fetch=async function observedFetch(input,init){const service=obsService(input);if(!service)return nativeFetch(input,init);const started=Date.now();try{const r=await nativeFetch(input,init);obsRecord(service,Date.now()-started,r.ok,r.status,r.ok?'':`HTTP ${r.status}`);return r}catch(e){obsRecord(service,Date.now()-started,false,0,e?.name||'request_failed');throw e}};
+function obsSnapshot(){return {uptime_seconds:Math.floor((Date.now()-OBS.startedAt)/1000),api:{requests:OBS.api.count,errors:OBS.api.errors,avg_ms:OBS.api.count?Math.round(OBS.api.totalMs/OBS.api.count):0,max_ms:OBS.api.maxMs},external:[...OBS.external.values()].map(x=>({...x,avgMs:x.count?Math.round(x.totalMs/x.count):0})).sort((a,b)=>a.service.localeCompare(b.service))};}
+
 function clientIP(req){return String(req.headers['cf-connecting-ip']||req.headers['x-forwarded-for']||req.socket?.remoteAddress||'unknown').split(',')[0].trim().slice(0,80);}
 function rateLimit(req,res,key,limit,windowMs){const now=Date.now(),k=`${key}:${clientIP(req)}`,old=RATE_WINDOWS.get(k);let row=old;if(!row||row.reset<=now)row={count:0,reset:now+windowMs};row.count++;RATE_WINDOWS.set(k,row);if(RATE_WINDOWS.size>5000){for(const [x,v] of RATE_WINDOWS)if(v.reset<=now)RATE_WINDOWS.delete(x)}if(row.count>limit){const retry=Math.max(1,Math.ceil((row.reset-now)/1000));json(res,429,{error:'Muitas tentativas. Aguarde um pouco e tente novamente.'},{'retry-after':String(retry)});return false}return true;}
 function securityHeaders(){const h={'x-content-type-options':'nosniff','x-frame-options':'DENY','referrer-policy':'strict-origin-when-cross-origin','permissions-policy':'camera=(), microphone=(), geolocation=(self)','cross-origin-opener-policy':'same-origin','cross-origin-resource-policy':'same-origin','x-permitted-cross-domain-policies':'none'};if(IS_PRODUCTION)h['strict-transport-security']='max-age=31536000; includeSubDomains';return h;}
@@ -488,13 +496,15 @@ function saveAssistantPair(userId,tripId,question,answer,ui){
 }
 
 async function api(req,res,url){
+  const obsStarted=Date.now();OBS.api.count++;const originalEnd=res.end;res.end=function(...args){const ms=Date.now()-obsStarted;OBS.api.totalMs+=ms;OBS.api.maxMs=Math.max(OBS.api.maxMs,ms);if(res.statusCode>=500)OBS.api.errors++;return originalEnd.apply(this,args)};
   if(!originOK(req)) return json(res,403,{error:'Origem não autorizada'});
   const p=url.pathname;
   if(!rateLimit(req,res,'api-global',600,15*60*1000))return;
   if(p.startsWith('/api/admin/')&&!rateLimit(req,res,'api-admin',180,15*60*1000))return;
   try{
     let m;
-    if(p==='/api/health') return json(res,200,{ok:true,version:'v104'});
+    if(p==='/api/health') return json(res,200,{ok:true,version:'v106',database:process.env.DATABASE_URL?'postgres-configured':'sqlite',uptime_seconds:Math.floor((Date.now()-OBS.startedAt)/1000)});
+    if(p==='/api/admin/operations'&&req.method==='GET'){const u=requireUser(req,res);if(!u)return;if(u.role!=='admin')return json(res,403,{error:'Acesso restrito.'});return json(res,200,{ok:true,version:'v106',database:{current:'sqlite',postgres_configured:Boolean(process.env.DATABASE_URL),migration_ready:true},observability:obsSnapshot()});}
     if(p==='/api/notifications'&&req.method==='GET'){const u=requireUser(req,res);if(!u)return;const rows=db.prepare('SELECT id,trip_id,type,title,message,target_tab,is_read,created_at FROM notifications WHERE user_id=? ORDER BY id DESC LIMIT 80').all(u.id);const unread=db.prepare('SELECT COUNT(*) n FROM notifications WHERE user_id=? AND is_read=0').get(u.id).n;return json(res,200,{rows,unread});}
     if(p==='/api/notifications/read-all'&&req.method==='POST'){const u=requireUser(req,res);if(!u)return;db.prepare('UPDATE notifications SET is_read=1 WHERE user_id=?').run(u.id);return json(res,200,{ok:true});}
     m=p.match(/^\/api\/notifications\/(\d+)\/read$/);if(m&&req.method==='POST'){const u=requireUser(req,res);if(!u)return;db.prepare('UPDATE notifications SET is_read=1 WHERE id=? AND user_id=?').run(Number(m[1]),u.id);return json(res,200,{ok:true});}
@@ -723,5 +733,5 @@ async function api(req,res,url){
 const mime={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.ico':'image/x-icon'};
 function staticFile(req,res,url){let rel=url.pathname==='/'?'index.html':url.pathname.slice(1);rel=path.normalize(rel).replace(/^(\.\.[/\\])+/, '');const base=path.join(__dirname,'public'),f=path.join(base,rel);if(!f.startsWith(base)||!fs.existsSync(f)||fs.statSync(f).isDirectory()){res.writeHead(404);return res.end('Not found');}res.writeHead(200,{'content-type':mime[path.extname(f)]||'application/octet-stream','cache-control':'no-cache, no-store, must-revalidate','pragma':'no-cache','expires':'0',...securityHeaders(),'content-security-policy':"default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' https://maps.googleapis.com https://maps.gstatic.com; connect-src 'self' https://api.frankfurter.app https://maps.googleapis.com https://places.googleapis.com; img-src 'self' data: https: blob:; frame-src https://www.google.com; base-uri 'none'; frame-ancestors 'none'"});fs.createReadStream(f).pipe(res);}
 const server=http.createServer((req,res)=>{const url=new URL(req.url,`http://${req.headers.host||'localhost'}`);if(url.pathname.startsWith('/api/'))api(req,res,url);else staticFile(req,res,url);});
-if(require.main===module)server.listen(PORT,HOST,()=>{console.log(`Ih, viajei! v104 em http://${HOST}:${PORT}`);startDatabaseBackups();startCurrencyAlerts();});
+if(require.main===module)server.listen(PORT,HOST,()=>{console.log(`Ih, viajei! v106 em http://${HOST}:${PORT}`);startDatabaseBackups();startCurrencyAlerts();});
 module.exports={server,db,hashPassword,verifyPassword,normalizeGooglePlaces,googlePlaceSearch,googleNearbyRestaurants,assistantNearbyUI,distanceMeters,openMeteoForecast,createDatabaseBackup,pruneDatabaseBackups,alertCondition,latestFxRate,checkCurrencyAlerts};

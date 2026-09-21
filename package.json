@@ -1,13 +1,18 @@
 {
   "name": "ihviajei",
-  "version": "105.0.0",
+  "version": "106.0.0",
   "private": true,
   "description": "Ih, viajei! — Sua viagem na palma da mão.",
   "scripts": {
     "start": "node server.js",
-    "test": "node tests.js && node places-tests.js"
+    "test": "node tests.js && node places-tests.js",
+    "migrate:postgres": "node scripts/migrate-postgres.js",
+    "postgres:check": "node scripts/check-postgres.js"
   },
   "engines": {
     "node": ">=22.5.0"
+  },
+  "dependencies": {
+    "pg": "^8.16.3"
   }
 }
