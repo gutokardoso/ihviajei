@@ -1,4 +1,4 @@
-# Ih, viajei! — v115
+# Ih, viajei! — v116
 
 **Sua viagem na palma da mão.**
 
@@ -342,11 +342,14 @@ O banco SQLite persistente em `/app/data` não é incluído no ZIP e não deve s
 - O fluxo seguro de confirmação do novo e-mail e o aviso ao endereço antigo continuam preservados.
 
 
-## Banco principal (v115)
+## Banco principal (v116)
 
 Quando `DATABASE_URL` está definida, a aplicação usa PostgreSQL como banco principal em tempo de execução. `DB_PATH` permanece disponível apenas para compatibilidade/rollback e para a migração manual; novos dados da aplicação não são gravados no SQLite. Sem `DATABASE_URL`, o modo SQLite continua disponível para desenvolvimento local. O endpoint `/api/health` informa `database: postgres` ou `database: sqlite`.
 
-## Novidades v115
+## Novidades v116
 - Reservas importadas por e-mail com validação objetiva, confiança e estado “aguardando revisão” antes do cadastro quando houver ambiguidade ou campos importantes ausentes.
 - Revisão/edição e descarte de importações pendentes na aba Reservas.
 - Visão geral com Próximos passos dinâmicos: acontecimentos do roteiro, checklist pendente, meta cambial, reservas sem confirmação e importações aguardando revisão.
+
+## Ajuste visual v116
+- Área Próximos passos refeita para corresponder à referência aprovada, com cabeçalho, botão Ver todos, linhas coloridas, ícones, metadados laterais e setas.
