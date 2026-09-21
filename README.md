@@ -1,3 +1,9 @@
+## v119 — Mercado Pago recorrente e meta cambial
+
+- Card de meta cambial em Próximos passos agora leva a Registrar compra de moeda com viagem/moeda preenchidas.
+- Cobrança recorrente real via Mercado Pago: mensal/anual, webhook assinado, status, renovação, inadimplência, cancelamento e troca de plano.
+- O plano pago só é efetivado após a assinatura ficar `authorized` no Mercado Pago; cancelamento rebaixa para Gratuito quando não existe outra assinatura autorizada.
+
 # Ih, viajei! — v118
 
 **Sua viagem na palma da mão.**
