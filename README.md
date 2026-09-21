@@ -1,4 +1,4 @@
-# Ih, viajei! — v110
+# Ih, viajei! — v111
 
 **Sua viagem na palma da mão.**
 
@@ -342,6 +342,6 @@ O banco SQLite persistente em `/app/data` não é incluído no ZIP e não deve s
 - O fluxo seguro de confirmação do novo e-mail e o aviso ao endereço antigo continuam preservados.
 
 
-## Banco principal (v110)
+## Banco principal (v111)
 
 Quando `DATABASE_URL` está definida, a aplicação usa PostgreSQL como banco principal em tempo de execução. `DB_PATH` permanece disponível apenas para compatibilidade/rollback e para a migração manual; novos dados da aplicação não são gravados no SQLite. Sem `DATABASE_URL`, o modo SQLite continua disponível para desenvolvimento local. O endpoint `/api/health` informa `database: postgres` ou `database: sqlite`.
