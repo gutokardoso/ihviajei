@@ -43,8 +43,9 @@ function prepareDatabasePath(){
     throw err;
   }
 }
-prepareDatabasePath();
-const db=new DatabaseSync(DB_PATH); db.exec('PRAGMA foreign_keys=ON; PRAGMA journal_mode=WAL;');
+const USING_POSTGRES=Boolean(process.env.DATABASE_URL);
+if(!USING_POSTGRES)prepareDatabasePath();
+const db=USING_POSTGRES?require('./db-postgres-sync'):(()=>{const x=new DatabaseSync(DB_PATH);x.exec('PRAGMA foreign_keys=ON; PRAGMA journal_mode=WAL;');x.kind='sqlite';return x})();
 db.exec(`
 CREATE TABLE IF NOT EXISTS users(id INTEGER PRIMARY KEY, name TEXT NOT NULL, email TEXT NOT NULL UNIQUE, password_hash TEXT NOT NULL, role TEXT NOT NULL DEFAULT 'user', created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
 CREATE TABLE IF NOT EXISTS sessions(token_hash TEXT PRIMARY KEY, user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE, expires_at INTEGER NOT NULL, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
@@ -320,6 +321,7 @@ function startCurrencyAlerts(){
 }
 
 async function createDatabaseBackup(){
+  if(USING_POSTGRES)return {ok:false,skipped:'postgres-managed-backup'};
   if(backupRunning)return {ok:false,skipped:'running'};
   const base=String(process.env.SUPABASE_URL||'').replace(/\/$/,''),key=supabaseSecret(),bucket=BACKUP_BUCKET;
   if(!base||!key||!bucket)return {ok:false,skipped:'not-configured'};
@@ -503,8 +505,8 @@ async function api(req,res,url){
   if(p.startsWith('/api/admin/')&&!rateLimit(req,res,'api-admin',180,15*60*1000))return;
   try{
     let m;
-    if(p==='/api/health') return json(res,200,{ok:true,version:'v109',database:process.env.DATABASE_URL?'postgres-configured':'sqlite',uptime_seconds:Math.floor((Date.now()-OBS.startedAt)/1000)});
-    if(p==='/api/admin/operations'&&req.method==='GET'){const u=requireUser(req,res);if(!u)return;if(u.role!=='admin')return json(res,403,{error:'Acesso restrito.'});return json(res,200,{ok:true,version:'v109',database:{current:'sqlite',postgres_configured:Boolean(process.env.DATABASE_URL),migration_ready:true},observability:obsSnapshot()});}
+    if(p==='/api/health') return json(res,200,{ok:true,version:'v110',database:USING_POSTGRES?'postgres':'sqlite',uptime_seconds:Math.floor((Date.now()-OBS.startedAt)/1000)});
+    if(p==='/api/admin/operations'&&req.method==='GET'){const u=requireUser(req,res);if(!u)return;if(u.role!=='admin')return json(res,403,{error:'Acesso restrito.'});return json(res,200,{ok:true,version:'v110',database:{current:USING_POSTGRES?'postgres':'sqlite',postgres_configured:Boolean(process.env.DATABASE_URL),migration_ready:true},observability:obsSnapshot()});}
     if(p==='/api/notifications'&&req.method==='GET'){const u=requireUser(req,res);if(!u)return;const rows=db.prepare('SELECT id,trip_id,type,title,message,target_tab,is_read,created_at FROM notifications WHERE user_id=? ORDER BY id DESC LIMIT 80').all(u.id);const unread=db.prepare('SELECT COUNT(*) n FROM notifications WHERE user_id=? AND is_read=0').get(u.id).n;return json(res,200,{rows,unread});}
     if(p==='/api/notifications/read-all'&&req.method==='POST'){const u=requireUser(req,res);if(!u)return;db.prepare('UPDATE notifications SET is_read=1 WHERE user_id=?').run(u.id);return json(res,200,{ok:true});}
     m=p.match(/^\/api\/notifications\/(\d+)\/read$/);if(m&&req.method==='POST'){const u=requireUser(req,res);if(!u)return;db.prepare('UPDATE notifications SET is_read=1 WHERE id=? AND user_id=?').run(Number(m[1]),u.id);return json(res,200,{ok:true});}
@@ -733,5 +735,5 @@ async function api(req,res,url){
 const mime={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.ico':'image/x-icon'};
 function staticFile(req,res,url){let rel=url.pathname==='/'?'index.html':url.pathname.slice(1);rel=path.normalize(rel).replace(/^(\.\.[/\\])+/, '');const base=path.join(__dirname,'public'),f=path.join(base,rel);if(!f.startsWith(base)||!fs.existsSync(f)||fs.statSync(f).isDirectory()){res.writeHead(404);return res.end('Not found');}res.writeHead(200,{'content-type':mime[path.extname(f)]||'application/octet-stream','cache-control':'no-cache, no-store, must-revalidate','pragma':'no-cache','expires':'0',...securityHeaders(),'content-security-policy':"default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' https://maps.googleapis.com https://maps.gstatic.com; connect-src 'self' https://api.frankfurter.app https://maps.googleapis.com https://places.googleapis.com; img-src 'self' data: https: blob:; frame-src https://www.google.com; base-uri 'none'; frame-ancestors 'none'"});fs.createReadStream(f).pipe(res);}
 const server=http.createServer((req,res)=>{const url=new URL(req.url,`http://${req.headers.host||'localhost'}`);if(url.pathname.startsWith('/api/'))api(req,res,url);else staticFile(req,res,url);});
-if(require.main===module)server.listen(PORT,HOST,()=>{console.log(`Ih, viajei! v109 em http://${HOST}:${PORT}`);startDatabaseBackups();startCurrencyAlerts();});
+if(require.main===module)server.listen(PORT,HOST,()=>{console.log(`Ih, viajei! v110 em http://${HOST}:${PORT}`);startDatabaseBackups();startCurrencyAlerts();});
 module.exports={server,db,hashPassword,verifyPassword,normalizeGooglePlaces,googlePlaceSearch,googleNearbyRestaurants,assistantNearbyUI,distanceMeters,openMeteoForecast,createDatabaseBackup,pruneDatabaseBackups,alertCondition,latestFxRate,checkCurrencyAlerts};
