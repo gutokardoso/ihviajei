@@ -1,4 +1,4 @@
-## v119 — Mercado Pago recorrente e meta cambial
+## v120 — Mercado Pago recorrente e meta cambial
 
 - Card de meta cambial em Próximos passos agora leva a Registrar compra de moeda com viagem/moeda preenchidas.
 - Cobrança recorrente real via Mercado Pago: mensal/anual, webhook assinado, status, renovação, inadimplência, cancelamento e troca de plano.
@@ -359,3 +359,7 @@ Quando `DATABASE_URL` está definida, a aplicação usa PostgreSQL como banco pr
 
 ## Ajuste visual v118
 - Área Próximos passos refeita para corresponder à referência aprovada, com cabeçalho, botão Ver todos, linhas coloridas, ícones, metadados laterais e setas.
+
+
+### Checkout transparente Mercado Pago
+Defina `MERCADOPAGO_PUBLIC_KEY` junto com `MERCADOPAGO_ACCESS_TOKEN` e `MERCADOPAGO_WEBHOOK_SECRET`. Os dados do cartão são tokenizados pelo MercadoPago.js e a assinatura é criada pelo backend via `/preapproval`.
