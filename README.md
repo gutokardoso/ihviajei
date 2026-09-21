@@ -1,4 +1,4 @@
-## v120 — Mercado Pago recorrente e meta cambial
+## v121 — Mercado Pago recorrente e meta cambial
 
 - Card de meta cambial em Próximos passos agora leva a Registrar compra de moeda com viagem/moeda preenchidas.
 - Cobrança recorrente real via Mercado Pago: mensal/anual, webhook assinado, status, renovação, inadimplência, cancelamento e troca de plano.
