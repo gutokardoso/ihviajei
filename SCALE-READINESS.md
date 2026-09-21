@@ -1,7 +1,7 @@
-# Ih, viajei! — preparação para escala (v107)
+# Ih, viajei! — preparação para escala (v108)
 
 ## PostgreSQL
-A v107 inclui ferramentas para validar a conexão e copiar, de forma transacional e sem apagar a origem, os dados do SQLite para um PostgreSQL provisionado no Railway.
+A v108 inclui ferramentas para validar a conexão e copiar, de forma transacional e sem apagar a origem, os dados do SQLite para um PostgreSQL provisionado no Railway.
 
 1. Provisione PostgreSQL no mesmo projeto Railway.
 2. Exponha `DATABASE_URL` ao serviço `ihviajei` por referência de variável do Railway. Não copie a senha para o repositório.
@@ -10,7 +10,7 @@ A v107 inclui ferramentas para validar a conexão e copiar, de forma transaciona
 5. Em janela de manutenção, sem novas gravações, execute `npm run migrate:postgres`.
 6. Confira contagens e integridade antes do cutover.
 
-IMPORTANTE: o servidor v107 continua usando SQLite como banco operacional. A ferramenta desta versão faz a cópia segura e valida a infraestrutura PostgreSQL, mas não troca silenciosamente o driver do servidor. O cutover do runtime exige a refatoração das consultas síncronas `node:sqlite` para consultas assíncronas PostgreSQL. Fazer isso sem o banco Railway provisionado e sem um ensaio com os dados reais criaria um risco desnecessário de indisponibilidade. O SQLite permanece como rollback.
+IMPORTANTE: o servidor v108 continua usando SQLite como banco operacional. A ferramenta desta versão faz a cópia segura e valida a infraestrutura PostgreSQL, mas não troca silenciosamente o driver do servidor. O cutover do runtime exige a refatoração das consultas síncronas `node:sqlite` para consultas assíncronas PostgreSQL. Fazer isso sem o banco Railway provisionado e sem um ensaio com os dados reais criaria um risco desnecessário de indisponibilidade. O SQLite permanece como rollback.
 
 ## Observabilidade
 Todas as chamadas `fetch` do backend são instrumentadas sem registrar URL completa, headers, tokens, payloads ou documentos. São agregados: serviço, quantidade, falhas, status, latência média/máxima e último horário. Serviços reconhecidos: Supabase, Google APIs (Places/Routes), AeroDataBox, OpenAI, Brevo, Resend, Frankfurter, AwesomeAPI, BCB e Open-Meteo.
