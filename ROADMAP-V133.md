@@ -1,6 +1,6 @@
-# Ih, viajei! — escopo consolidado v133
+# Ih, viajei! — escopo consolidado v134
 
-A v133 preserva os recursos já existentes e acrescenta a conclusão consolidada do novo escopo: Central PRO, Timeline/Hoje na viagem, preparação, conflitos, clima, sugestão de roupas/checklist, acerto de despesas, calendário ICS, PWA/offline, Wallet e Push com ativação condicionada às credenciais oficiais, saúde das integrações e auditoria administrativa.
+A v134 preserva os recursos já existentes e acrescenta a conclusão consolidada do novo escopo: Central PRO, Timeline/Hoje na viagem, preparação, conflitos, clima, sugestão de roupas/checklist, acerto de despesas, calendário ICS, PWA/offline, Wallet e Push com ativação condicionada às credenciais oficiais, saúde das integrações e auditoria administrativa.
 
 ## Regras de plano
 - Gratuito e Intermediário visualizam a Central da viagem bloqueada como PRO.
