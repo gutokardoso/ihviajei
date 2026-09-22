@@ -537,7 +537,11 @@ async function cancelMpSubscription(providerId,{preserveEntitlement=false}={}){
   // As assinaturas do Ih, viajei! são criadas sem preapproval_plan_id. Para esse
   // tipo de assinatura, a API de atualização do Mercado Pago exige também o
   // motivo (reason). Reaproveitamos exatamente o motivo já salvo no provedor.
-  const cancelBody={status:'canceled'};
+  // A API de produção desta conta rejeitou literalmente `canceled` com
+  // `Invalid preapproval status param: canceled` (HTTP 400). Embora a
+  // documentação pública use essa grafia, o endpoint ativo desta integração
+  // aceita a variante `cancelled`. mpStatus() normaliza ambas internamente.
+  const cancelBody={status:'cancelled'};
   if(before?.reason)cancelBody.reason=String(before.reason);
   const result=await mpRequest('/preapproval/'+encodeURIComponent(providerId),{method:'PUT',body:cancelBody});
   const status=mpStatus(result?.status);
@@ -587,8 +591,8 @@ async function api(req,res,url){
   if(p.startsWith('/api/admin/')&&!rateLimit(req,res,'api-admin',180,15*60*1000))return;
   try{
     let m;
-    if(p==='/api/health') return json(res,200,{ok:true,version:'v124',database:USING_POSTGRES?'postgres':'sqlite',uptime_seconds:Math.floor((Date.now()-OBS.startedAt)/1000)});
-    if(p==='/api/admin/operations'&&req.method==='GET'){const u=requireUser(req,res);if(!u)return;if(u.role!=='admin')return json(res,403,{error:'Acesso restrito.'});return json(res,200,{ok:true,version:'v124',database:{current:USING_POSTGRES?'postgres':'sqlite',postgres_configured:Boolean(process.env.DATABASE_URL),migration_ready:true},observability:{...obsSnapshot(),backup:OBS.backup}});}
+    if(p==='/api/health') return json(res,200,{ok:true,version:'v125',database:USING_POSTGRES?'postgres':'sqlite',uptime_seconds:Math.floor((Date.now()-OBS.startedAt)/1000)});
+    if(p==='/api/admin/operations'&&req.method==='GET'){const u=requireUser(req,res);if(!u)return;if(u.role!=='admin')return json(res,403,{error:'Acesso restrito.'});return json(res,200,{ok:true,version:'v125',database:{current:USING_POSTGRES?'postgres':'sqlite',postgres_configured:Boolean(process.env.DATABASE_URL),migration_ready:true},observability:{...obsSnapshot(),backup:OBS.backup}});}
     if(p==='/api/notifications'&&req.method==='GET'){const u=requireUser(req,res);if(!u)return;const rows=db.prepare('SELECT id,trip_id,type,title,message,target_tab,is_read,created_at FROM notifications WHERE user_id=? ORDER BY id DESC LIMIT 80').all(u.id);const unread=db.prepare('SELECT COUNT(*) n FROM notifications WHERE user_id=? AND is_read=0').get(u.id).n;return json(res,200,{rows,unread});}
     if(p==='/api/notifications/read-all'&&req.method==='POST'){const u=requireUser(req,res);if(!u)return;db.prepare('UPDATE notifications SET is_read=1 WHERE user_id=?').run(u.id);return json(res,200,{ok:true});}
     m=p.match(/^\/api\/notifications\/(\d+)\/read$/);if(m&&req.method==='POST'){const u=requireUser(req,res);if(!u)return;db.prepare('UPDATE notifications SET is_read=1 WHERE id=? AND user_id=?').run(Number(m[1]),u.id);return json(res,200,{ok:true});}
