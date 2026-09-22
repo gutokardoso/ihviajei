@@ -1,10 +1,10 @@
-## v130 — Mercado Pago recorrente e meta cambial
+## v131 — Mercado Pago recorrente e meta cambial
 
 - Card de meta cambial em Próximos passos agora leva a Registrar compra de moeda com viagem/moeda preenchidas.
 - Cobrança recorrente real via Mercado Pago: mensal/anual, webhook assinado, status, renovação, inadimplência, cancelamento e troca de plano.
 - O plano pago só é efetivado após a assinatura ficar `authorized` no Mercado Pago; cancelamento rebaixa para Gratuito quando não existe outra assinatura autorizada.
 
-# Ih, viajei! — v118
+# Ih, viajei! — v131
 
 **Sua viagem na palma da mão.**
 
@@ -363,3 +363,8 @@ Quando `DATABASE_URL` está definida, a aplicação usa PostgreSQL como banco pr
 
 ### Checkout transparente Mercado Pago
 Defina `MERCADOPAGO_PUBLIC_KEY` junto com `MERCADOPAGO_ACCESS_TOKEN` e `MERCADOPAGO_WEBHOOK_SECRET`. Os dados do cartão são tokenizados pelo MercadoPago.js e a assinatura é criada pelo backend via `/preapproval`.
+
+## v131 — Central inteligente da viagem
+A v131 consolida o próximo estágio do produto sem duplicar os módulos existentes: Timeline/Hoje na viagem, preparação, conflitos simples, clima e sugestão de roupas/checklist, acerto de despesas, calendário ICS, PWA/offline e infraestrutura para Wallet e Push. Os recursos inteligentes desta central são PRO e aparecem bloqueados nos planos inferiores. Apple Wallet, Google Wallet e Web Push exigem credenciais oficiais externas no ambiente; a plataforma expõe o estado de configuração sem simular emissão.
+
+Também foram adicionadas estruturas para auditoria administrativa e saúde das integrações. A documentação e os marcadores internos desta entrega usam v131.

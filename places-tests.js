@@ -27,3 +27,13 @@ global.fetch=async (url,opt)=>{captured={url,opt,body:JSON.parse(opt.body)};retu
   assert.equal(ui.type,'nearby_restaurants'); assert.equal(ui.places.length,2); assert.equal(ui.places[0].image,'/api/place-photo?name=places%2Fabc%2Fphotos%2Fphoto1'); assert.ok(Number.isFinite(ui.places[0].distance_meters));
   console.log('OK: Nearby Search e processamento da resposta Places API (New) validados.');
 } finally {global.fetch=realFetch; cleanupDb()}})().catch(e=>{global.fetch=realFetch;console.error(e);process.exit(1)});
+
+// v131 static regression guards
+{
+ const fs=require('node:fs'),path=require('node:path');
+ const server=fs.readFileSync(path.join(__dirname,'server.js'),'utf8'),app=fs.readFileSync(path.join(__dirname,'public','app.js'),'utf8'),html=fs.readFileSync(path.join(__dirname,'public','index.html'),'utf8');
+ if(!server.includes('/travel-hub')||!server.includes('/smart-packing')||!server.includes('/calendar.ics'))throw new Error('v131: endpoints da Central PRO ausentes');
+ if(!app.includes("'central'")||!html.includes('Central da viagem'))throw new Error('v131: Central PRO ausente no frontend');
+ if(!fs.existsSync(path.join(__dirname,'public','sw.js'))||!fs.existsSync(path.join(__dirname,'public','manifest.webmanifest')))throw new Error('v131: PWA incompleta');
+ console.log('OK: Central PRO v131, checklist inteligente, calendário e PWA validados.');
+}

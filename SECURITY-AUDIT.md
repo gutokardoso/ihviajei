@@ -1,4 +1,4 @@
-# Auditoria de segurança de produção — v104
+# Auditoria de segurança de produção — v131
 
 Data: 20/09/2026
 

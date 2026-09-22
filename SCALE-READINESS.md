@@ -1,7 +1,7 @@
-# Ih, viajei! — preparação para escala (v113)
+# Ih, viajei! — preparação para escala (v131)
 
 ## PostgreSQL
-A v113 inclui ferramentas para validar a conexão e copiar, de forma transacional e sem apagar a origem, os dados do SQLite para um PostgreSQL provisionado no Railway.
+A v131 inclui ferramentas para validar a conexão e copiar, de forma transacional e sem apagar a origem, os dados do SQLite para um PostgreSQL provisionado no Railway.
 
 1. Provisione PostgreSQL no mesmo projeto Railway.
 2. Exponha `DATABASE_URL` ao serviço `ihviajei` por referência de variável do Railway. Não copie a senha para o repositório.
