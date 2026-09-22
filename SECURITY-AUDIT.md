@@ -1,4 +1,4 @@
-# Auditoria de segurança de produção — v131
+# Auditoria de segurança de produção — v133
 
 Data: 20/09/2026
 
@@ -28,4 +28,4 @@ Data: 20/09/2026
 
 ## Classificação
 
-A v104 está mais endurecida para testes com usuários, mas a entrada em produção com pagamentos deve aguardar os itens operacionais acima, especialmente webhook de pagamento assinado/idempotente, MFA administrativo, monitoramento e teste de intrusão.
+A v133 está mais endurecida para testes com usuários, mas a entrada em produção com pagamentos deve aguardar os itens operacionais acima, especialmente webhook de pagamento assinado/idempotente, MFA administrativo, monitoramento e teste de intrusão.
