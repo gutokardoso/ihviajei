@@ -531,23 +531,42 @@ function paidThroughFrom(local,mp){
 }
 async function cancelMpSubscription(providerId,{preserveEntitlement=false}={}){
   if(!providerId)throw new Error('Assinatura do Mercado Pago não identificada.');
-  const local=db.prepare('SELECT * FROM billing_subscriptions WHERE provider_subscription_id=?').get(String(providerId));
-  let before=null;try{before=await mpRequest('/preapproval/'+encodeURIComponent(providerId))}catch{}
-  const entitlementUntil=preserveEntitlement?paidThroughFrom(local,before):null;
-  // As assinaturas do Ih, viajei! são criadas sem preapproval_plan_id. Para esse
-  // tipo de assinatura, a API de atualização do Mercado Pago exige também o
-  // motivo (reason). Reaproveitamos exatamente o motivo já salvo no provedor.
-  // A API de produção desta conta rejeitou literalmente `canceled` com
-  // `Invalid preapproval status param: canceled` (HTTP 400). Embora a
-  // documentação pública use essa grafia, o endpoint ativo desta integração
-  // aceita a variante `cancelled`. mpStatus() normaliza ambas internamente.
+  const providerKey=String(providerId);
+  const local=db.prepare('SELECT * FROM billing_subscriptions WHERE provider_subscription_id=?').get(providerKey);
+  const persistCanceled=(mp)=>{
+    const entitlementUntil=preserveEntitlement?paidThroughFrom(local,mp):null;
+    db.prepare("UPDATE billing_subscriptions SET status='canceled',entitlement_until=?,cancellation_requested_at=COALESCE(cancellation_requested_at,CURRENT_TIMESTAMP),updated_at=CURRENT_TIMESTAMP WHERE provider_subscription_id=?").run(entitlementUntil,providerKey);
+    if(local?.user_id)refreshBillingEntitlement(local.user_id);
+    return {...(mp||{}),status:'canceled',entitlement_until:entitlementUntil};
+  };
+
+  // Sempre consulta o provedor antes de cancelar. Isso torna a operação
+  // idempotente: se o Mercado Pago já cancelou (por exemplo, o PUT funcionou
+  // mas a resposta local falhou), uma nova tentativa apenas reconcilia o banco.
+  let before=null;
+  try{before=await mpRequest('/preapproval/'+encodeURIComponent(providerKey))}catch(e){
+    console.warn('[billing] Não foi possível consultar a assinatura antes do cancelamento:',e.message);
+  }
+  if(mpStatus(before?.status)==='canceled')return persistCanceled(before);
+
   const cancelBody={status:'cancelled'};
   if(before?.reason)cancelBody.reason=String(before.reason);
-  const result=await mpRequest('/preapproval/'+encodeURIComponent(providerId),{method:'PUT',body:cancelBody});
-  const status=mpStatus(result?.status);
-  if(status!=='canceled')throw new Error('O Mercado Pago não confirmou o cancelamento da assinatura.');
-  db.prepare("UPDATE billing_subscriptions SET status='canceled',entitlement_until=?,cancellation_requested_at=CURRENT_TIMESTAMP,updated_at=CURRENT_TIMESTAMP WHERE provider_subscription_id=?").run(entitlementUntil,String(providerId));
-  return {...result,entitlement_until:entitlementUntil};
+  let result=null,putError=null;
+  try{
+    result=await mpRequest('/preapproval/'+encodeURIComponent(providerKey),{method:'PUT',body:cancelBody});
+  }catch(e){putError=e;}
+
+  // A confirmação final vem do estado efetivo no Mercado Pago, não apenas do
+  // corpo devolvido pelo PUT. Isso cobre webhooks/respostas concorrentes e o
+  // caso observado em produção em que o e-mail de cancelamento foi enviado.
+  let confirmed=result;
+  if(mpStatus(result?.status)!=='canceled'){
+    try{confirmed=await mpRequest('/preapproval/'+encodeURIComponent(providerKey))}catch(e){
+      if(!putError)putError=e;
+    }
+  }
+  if(mpStatus(confirmed?.status)==='canceled')return persistCanceled(confirmed);
+  throw putError||new Error('O Mercado Pago não confirmou o cancelamento da assinatura.');
 }
 function refreshBillingEntitlement(userId){
   if(!userId)return;
@@ -591,8 +610,8 @@ async function api(req,res,url){
   if(p.startsWith('/api/admin/')&&!rateLimit(req,res,'api-admin',180,15*60*1000))return;
   try{
     let m;
-    if(p==='/api/health') return json(res,200,{ok:true,version:'v125',database:USING_POSTGRES?'postgres':'sqlite',uptime_seconds:Math.floor((Date.now()-OBS.startedAt)/1000)});
-    if(p==='/api/admin/operations'&&req.method==='GET'){const u=requireUser(req,res);if(!u)return;if(u.role!=='admin')return json(res,403,{error:'Acesso restrito.'});return json(res,200,{ok:true,version:'v125',database:{current:USING_POSTGRES?'postgres':'sqlite',postgres_configured:Boolean(process.env.DATABASE_URL),migration_ready:true},observability:{...obsSnapshot(),backup:OBS.backup}});}
+    if(p==='/api/health') return json(res,200,{ok:true,version:'v126',database:USING_POSTGRES?'postgres':'sqlite',uptime_seconds:Math.floor((Date.now()-OBS.startedAt)/1000)});
+    if(p==='/api/admin/operations'&&req.method==='GET'){const u=requireUser(req,res);if(!u)return;if(u.role!=='admin')return json(res,403,{error:'Acesso restrito.'});return json(res,200,{ok:true,version:'v126',database:{current:USING_POSTGRES?'postgres':'sqlite',postgres_configured:Boolean(process.env.DATABASE_URL),migration_ready:true},observability:{...obsSnapshot(),backup:OBS.backup}});}
     if(p==='/api/notifications'&&req.method==='GET'){const u=requireUser(req,res);if(!u)return;const rows=db.prepare('SELECT id,trip_id,type,title,message,target_tab,is_read,created_at FROM notifications WHERE user_id=? ORDER BY id DESC LIMIT 80').all(u.id);const unread=db.prepare('SELECT COUNT(*) n FROM notifications WHERE user_id=? AND is_read=0').get(u.id).n;return json(res,200,{rows,unread});}
     if(p==='/api/notifications/read-all'&&req.method==='POST'){const u=requireUser(req,res);if(!u)return;db.prepare('UPDATE notifications SET is_read=1 WHERE user_id=?').run(u.id);return json(res,200,{ok:true});}
     m=p.match(/^\/api\/notifications\/(\d+)\/read$/);if(m&&req.method==='POST'){const u=requireUser(req,res);if(!u)return;db.prepare('UPDATE notifications SET is_read=1 WHERE id=? AND user_id=?').run(Number(m[1]),u.id);return json(res,200,{ok:true});}
