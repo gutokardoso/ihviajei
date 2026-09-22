@@ -1,4 +1,4 @@
-# Auditoria de segurança de produção — v136
+# Auditoria de segurança de produção — v137
 
 Data: 20/09/2026
 
@@ -28,4 +28,4 @@ Data: 20/09/2026
 
 ## Classificação
 
-A v136 está mais endurecida para testes com usuários, mas a entrada em produção com pagamentos deve aguardar os itens operacionais acima, especialmente webhook de pagamento assinado/idempotente, MFA administrativo, monitoramento e teste de intrusão.
+A v137 está mais endurecida para testes com usuários, mas a entrada em produção com pagamentos deve aguardar os itens operacionais acima, especialmente webhook de pagamento assinado/idempotente, MFA administrativo, monitoramento e teste de intrusão.
