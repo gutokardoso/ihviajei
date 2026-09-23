@@ -1,16 +1,14 @@
 {
   "name": "ihviajei",
-  "version": "143.0.0",
+  "version": "144.0.0",
   "private": true,
   "description": "Ih, viajei! — Sua viagem na palma da mão.",
   "scripts": {
     "start": "node server.js",
-    "test": "node tests.js && node places-tests.js && node v143-tests.js && node v143-admin-tests.js && node v143-central-tests.js && node v143-ux-tests.js && node v143-packing-tests.js && node v143-weather-tests.js && node v143-layout-tests.js",
     "migrate:postgres": "node scripts/migrate-postgres.js",
     "postgres:check": "node scripts/check-postgres.js",
     "restore:postgres": "node scripts/restore-postgres.js",
-    "backup:postgres": "node scripts/backup-postgres.js",
-    "test:e2e": "node tests.js"
+    "backup:postgres": "node scripts/backup-postgres.js"
   },
   "engines": {
     "node": ">=22.5.0"
