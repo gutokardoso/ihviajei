@@ -1,0 +1,10 @@
+const assert=require('assert'),fs=require('fs');
+const app=fs.readFileSync('public/app.js','utf8'),server=fs.readFileSync('server.js','utf8');
+assert.ok(app.includes('A previsão meteorológica exata aparecerá 16 dias antes das datas'),'Aviso de 16 dias deve aparecer após o título');
+assert.ok(!app.includes('prévia de teste')&&!app.includes('renderPackingCalendarDemo'),'Área de teste deve ser removida');
+assert.ok(app.includes('Referência histórica'),'Calendário deve identificar referência histórica');
+assert.ok(app.includes('Indicação histórica/típica para as datas da viagem'),'Vestuário deve indicar fonte histórica/típica');
+assert.ok(server.includes("forecast_days','16"),'Previsão real deve solicitar 16 dias');
+assert.ok(server.includes('openMeteoHistoricalTypical'),'Fallback histórico deve existir');
+assert.ok(server.includes('clothing_source'),'Recomendação de roupas deve registrar a origem');
+console.log('OK: v143 — previsão 16 dias, fallback histórico e vestuário por datas validados.');

@@ -1,14 +1,14 @@
-## v142 — Central PRO e operação completa
+## v143 — Central PRO e operação completa
 
 - Card de meta cambial em Próximos passos agora leva a Registrar compra de moeda com viagem/moeda preenchidas.
 - Cobrança recorrente real via Mercado Pago: mensal/anual, webhook assinado, status, renovação, inadimplência, cancelamento e troca de plano.
 - O plano pago só é efetivado após a assinatura ficar `authorized` no Mercado Pago; cancelamento rebaixa para Gratuito quando não existe outra assinatura autorizada.
 
-# Ih, viajei! — v142
+# Ih, viajei! — v143
 
 **Sua viagem na palma da mão.**
 
-Versão v142 consolidada a partir da base de produção imediatamente anterior, preservando as decisões aprovadas e concluindo as pendências identificadas na auditoria.
+Versão v143 consolidada a partir da base de produção imediatamente anterior, preservando as decisões aprovadas e concluindo as pendências identificadas na auditoria.
 
 
 ## v102 — meta cambial individual por participante
@@ -364,24 +364,24 @@ Quando `DATABASE_URL` está definida, a aplicação usa PostgreSQL como banco pr
 ### Checkout transparente Mercado Pago
 Defina `MERCADOPAGO_PUBLIC_KEY` junto com `MERCADOPAGO_ACCESS_TOKEN` e `MERCADOPAGO_WEBHOOK_SECRET`. Os dados do cartão são tokenizados pelo MercadoPago.js e a assinatura é criada pelo backend via `/preapproval`.
 
-## v142 — Central inteligente da viagem
-A v142 consolida o próximo estágio do produto sem duplicar os módulos existentes: Timeline/Hoje na viagem, preparação, conflitos com Routes quando disponível, clima e sugestão de roupas/checklist, acerto de despesas, calendário visual/ICS, PWA/offline, emissão Wallet e Web Push condicionados às credenciais oficiais. Os recursos inteligentes desta central são PRO e aparecem bloqueados nos planos inferiores. Apple Wallet, Google Wallet e Web Push exigem credenciais oficiais externas no ambiente; a plataforma expõe o estado de configuração sem simular emissão.
+## v143 — Central inteligente da viagem
+A v143 consolida o próximo estágio do produto sem duplicar os módulos existentes: Timeline/Hoje na viagem, preparação, conflitos com Routes quando disponível, clima e sugestão de roupas/checklist, acerto de despesas, calendário visual/ICS, PWA/offline, emissão Wallet e Web Push condicionados às credenciais oficiais. Os recursos inteligentes desta central são PRO e aparecem bloqueados nos planos inferiores. Apple Wallet, Google Wallet e Web Push exigem credenciais oficiais externas no ambiente; a plataforma expõe o estado de configuração sem simular emissão.
 
-Também foram adicionadas estruturas para auditoria administrativa e saúde das integrações. A documentação e os marcadores internos desta entrega usam v142.
+Também foram adicionadas estruturas para auditoria administrativa e saúde das integrações. A documentação e os marcadores internos desta entrega usam v143.
 
-## v142 — conclusão do escopo PRO
-A v142 transforma a base anterior em fluxos operacionais: Timeline usa horário estruturado; Hoje na viagem respeita fuso detectado; conflitos consultam Google Routes quando configurado; mala inteligente combina Assistente IA e meteorologia; ações do Assistente passam por proposta e confirmação; Central de Emergência persiste dados; acertos podem ser registrados; há calendário visual + ICS e relatório PDF.
+## v143 — conclusão do escopo PRO
+A v143 transforma a base anterior em fluxos operacionais: Timeline usa horário estruturado; Hoje na viagem respeita fuso detectado; conflitos consultam Google Routes quando configurado; mala inteligente combina Assistente IA e meteorologia; ações do Assistente passam por proposta e confirmação; Central de Emergência persiste dados; acertos podem ser registrados; há calendário visual + ICS e relatório PDF.
 
 Wallet: Google Wallet cria/atualiza Generic Class/Object e gera link oficial quando o emissor está configurado. Apple Wallet gera `.pkpass` assinado quando certificados e o modelo `.pass` oficial estão configurados. Web Push usa VAPID e o monitor de voos PRO verifica reservas próximas de hora em hora, notificando mudanças detectadas.
 
-Admin: 2FA TOTP, audit log e painel de saúde foram conectados. As tabelas v142 são criadas pelo mesmo bootstrap DDL tanto em SQLite quanto em PostgreSQL através do adaptador de produção.
+Admin: 2FA TOTP, audit log e painel de saúde foram conectados. As tabelas v143 são criadas pelo mesmo bootstrap DDL tanto em SQLite quanto em PostgreSQL através do adaptador de produção.
 
 Integrações externas não são simuladas: sem credenciais válidas, os controles permanecem em estado de configuração pendente.
 
-## v142 — Administração operacional e acesso de teste
+## v143 — Administração operacional e acesso de teste
 O painel administrativo foi endurecido para que uma falha isolada de saúde/auditoria/estatísticas não deixe usuários e gráficos vazios. As estatísticas deixaram de depender de funções de data exclusivas do SQLite e agora funcionam de forma compatível com o PostgreSQL de produção.
 
 Administradores podem conceder **acesso de teste** Gratuito, Intermediário ou PRO por 1, 7, 30 dias ou sem prazo. O override não altera nem cancela a assinatura comercial do Mercado Pago: `plan` continua sendo a fonte comercial e `test_plan` apenas determina o entitlement efetivo enquanto estiver válido. Toda concessão/remoção é registrada no audit log.
 
-## v142 — desempenho e usabilidade da Central PRO
+## v143 — desempenho e usabilidade da Central PRO
 A Central da viagem passa a abrir primeiro com dados locais e carrega clima e análise detalhada de deslocamentos em segundo plano. O checklist inteligente abre feedback imediatamente, consulta IA/meteorologia sem bloquear a interface e remove sugestões que já estejam no checklist. A Timeline exibe data e horário por evento. O acerto entre viajantes permite marcar/desmarcar pagamentos, preservando o estado e exibindo itens quitados riscados. O card redundante “Calendário da viagem” foi removido; a exportação `.ics` permanece como ação no padrão visual da plataforma.

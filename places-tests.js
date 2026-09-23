@@ -28,12 +28,12 @@ global.fetch=async (url,opt)=>{captured={url,opt,body:JSON.parse(opt.body)};retu
   console.log('OK: Nearby Search e processamento da resposta Places API (New) validados.');
 } finally {global.fetch=realFetch; cleanupDb()}})().catch(e=>{global.fetch=realFetch;console.error(e);process.exit(1)});
 
-// v142 static regression guards
+// v143 static regression guards
 {
  const fs=require('node:fs'),path=require('node:path');
  const server=fs.readFileSync(path.join(__dirname,'server.js'),'utf8'),app=fs.readFileSync(path.join(__dirname,'public','app.js'),'utf8'),html=fs.readFileSync(path.join(__dirname,'public','index.html'),'utf8');
- if(!server.includes('/travel-hub')||!server.includes('/smart-packing')||!server.includes('/calendar.ics'))throw new Error('v142: endpoints da Central PRO ausentes');
- if(!app.includes("'central'")||!html.includes('Central da viagem'))throw new Error('v142: Central PRO ausente no frontend');
- if(!fs.existsSync(path.join(__dirname,'public','sw.js'))||!fs.existsSync(path.join(__dirname,'public','manifest.webmanifest')))throw new Error('v142: PWA incompleta');
- console.log('OK: Central PRO v142, checklist inteligente, calendário e PWA validados.');
+ if(!server.includes('/travel-hub')||!server.includes('/smart-packing')||!server.includes('/calendar.ics'))throw new Error('v143: endpoints da Central PRO ausentes');
+ if(!app.includes('renderOverviewTravelHub')||html.includes('data-tab="central"'))throw new Error('v143: Central deve estar integrada à Visão geral, sem aba própria');
+ if(!fs.existsSync(path.join(__dirname,'public','sw.js'))||!fs.existsSync(path.join(__dirname,'public','manifest.webmanifest')))throw new Error('v143: PWA incompleta');
+ console.log('OK: Central PRO v143, checklist inteligente, calendário e PWA validados.');
 }

@@ -1,0 +1,11 @@
+const fs=require('fs'),assert=require('assert');
+const app=fs.readFileSync('public/app.js','utf8'),server=fs.readFileSync('server.js','utf8'),css=fs.readFileSync('public/style.css','utf8'),html=fs.readFileSync('public/index.html','utf8'),sw=fs.readFileSync('public/sw.js','utf8');
+assert(app.includes('settlementCheck')&&app.includes('/settlements/status'),'Acerto quitável ausente');
+assert(css.includes('.settlementRow.paid .settlementText')&&css.includes('line-through'),'Risco de acerto pago ausente');
+assert(app.includes("brDate(x.date)")&&app.includes("x.time||'Horário não informado'"),'Timeline sem data/horário');
+assert(!app.includes('<h3>Calendário da viagem</h3>'),'Calendário inútil ainda presente');
+assert(app.includes('primary hubPrimaryAction hubDownload')&&app.includes('Exportar calendário (.ics)'),'Botão ICS fora do padrão');
+assert(server.includes('/travel-insights')&&server.includes('Promise.all([tripWeatherOverview'),'Insights assíncronos ausentes');
+assert(server.includes("suggestions=suggestions.filter"),'Checklist não filtra itens existentes');
+assert(html.includes('style.css?v=143')&&html.includes('app.js?v=143')&&sw.includes("ihviajei-v143"),'Cache/assets não sincronizados');
+console.log('v143 UX tests: OK');
