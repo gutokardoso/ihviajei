@@ -1,0 +1,12 @@
+'use strict';
+const fs=require('fs'),path=require('path'),assert=require('assert');
+const server=fs.readFileSync(path.join(__dirname,'server.js'),'utf8');
+const app=fs.readFileSync(path.join(__dirname,'public','app.js'),'utf8');
+const html=fs.readFileSync(path.join(__dirname,'public','index.html'),'utf8');
+const pkg=require('./package.json');
+assert.equal(pkg.version,'142.0.0');
+for(const token of ['assistant_proposals','emergency_info','expense_settlements','flight_watch_state','googleWalletLink','appleWalletBuffer','sendWebPushToUser','startFlightWatch','/report.pdf','/admin/mfa/setup','/auth/mfa','routeAwareConflicts'])assert.ok(server.includes(token),`v142 ausente: ${token}`);
+for(const token of ['assistantProposalCard','emergencyBtn','report.pdf','settlementCheck','adminHealth','adminMfaBtn'])assert.ok(app.includes(token)||html.includes(token),`frontend v142 ausente: ${token}`);
+assert.ok(fs.readFileSync(path.join(__dirname,'public','sw.js'),'utf8').includes('ihviajei-v142'));
+assert.ok(fs.existsSync(path.join(__dirname,'V142-CHECKLIST.md')));
+console.log('OK: escopo operacional v142, Wallet, Push, MFA, emergência, relatório e documentação validados estaticamente.');
