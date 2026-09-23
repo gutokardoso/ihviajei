@@ -364,3 +364,6 @@ button:focus{outline:none}button:focus-visible{outline:none;box-shadow:0 0 0 3px
 
 /* v145 — Central integrada à Visão geral */
 .overviewTravelHub{display:grid;gap:16px;margin-top:26px}.hubSectionHead{display:grid;gap:3px}.hubSectionHead h2{margin:0}.overviewHubGrid>section:nth-child(1){grid-column:1}.overviewHubGrid>section:nth-child(2){grid-column:2}.overviewHubGrid>section:nth-child(n+3){grid-column:auto}@media(max-width:760px){.overviewHubGrid>section:nth-child(n){grid-column:1}}
+
+/* v147 section title icons */
+.sectionTitleWithIcon{display:flex;align-items:center;gap:9px}.sectionTitleIcon{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;flex:0 0 20px;color:var(--teal,#0aaeb5)}.sectionTitleIcon svg{width:20px;height:20px;display:block;fill:currentColor}
