@@ -7,9 +7,8 @@ COPY server.js ./
 COPY db-postgres-sync.js ./
 COPY postgres-sync-worker.js ./
 COPY scripts ./scripts
-COPY tests.js places-tests.js ./
 COPY public ./public
-# SQLite fica disponível apenas para desenvolvimento/testes e como origem de migração.
+# SQLite fica disponível apenas para desenvolvimento/migração local.
 # Em produção o servidor exige DATABASE_URL e opera em PostgreSQL.
 RUN mkdir -p /app/data
 ENV PORT=3000 DB_PATH=/app/data/ihviajei.db NODE_ENV=production
