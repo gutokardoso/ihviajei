@@ -1,0 +1,12 @@
+const fs=require('fs');
+const app=fs.readFileSync('public/app.js','utf8');
+const css=fs.readFileSync('public/style.css','utf8');
+const server=fs.readFileSync('server.js','utf8');
+for(const x of ['smartPackingBtn','emergencyBtn','pushBtn']) if(!app.includes(`class="primary hubPrimaryAction" id="${x}"`)) throw new Error(`v140: ${x} fora do padrão visual`);
+if(!app.includes('primary hubPrimaryAction hubDownload')) throw new Error('v140: relatório PDF fora do padrão visual');
+if(!app.includes('/bt-apple.png')||!app.includes('/bt-google.png')) throw new Error('v140: badges Wallet ausentes');
+if(!fs.existsSync('public/bt-apple.png')||!fs.existsSync('public/bt-google.png')) throw new Error('v140: imagens Wallet não empacotadas');
+if(!server.includes('tripWeatherOverview')||!server.includes('weather_locations')) throw new Error('v140: clima por lugar não implementado no backend');
+if(!app.includes('weatherLocations.map')) throw new Error('v140: clima por lugar não renderizado');
+if(!css.includes('.weatherPlace')||!css.includes('.walletBadgeBtn')) throw new Error('v140: estilos da Central incompletos');
+console.log('OK: v140 — ações da Central, badges Wallet e clima/vestuário por lugar validados.');
