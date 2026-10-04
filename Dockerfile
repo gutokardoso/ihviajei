@@ -6,6 +6,7 @@ RUN npm install --omit=dev --ignore-scripts
 COPY server.js ./
 COPY db-postgres-sync.js ./
 COPY postgres-sync-worker.js ./
+COPY publicia-server-sdk.js ./
 COPY scripts ./scripts
 COPY public ./public
 # SQLite fica disponível apenas para desenvolvimento/migração local.
